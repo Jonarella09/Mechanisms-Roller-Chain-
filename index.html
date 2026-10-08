@@ -1,0 +1,1867 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="An animated, step-by-step look at how a roller chain is built and how it drives sprockets.">
+<meta property="og:title" content="Roller Chain &amp; Sprockets">
+<meta property="og:description" content="An animated, step-by-step look at how a roller chain is built and how it drives sprockets.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232747c8'/%3E%3Ccircle cx='11' cy='16' r='5.2' fill='none' stroke='white' stroke-width='3'/%3E%3Ccircle cx='21' cy='16' r='5.2' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<style>:root{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Roller Chain &amp; Sprockets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  /* Layout: one-column player. A WebGL stage drawn like a workshop-manual plate
+     (graph-paper ground, numbered callouts), with the transport bar and chapter strip beneath. */
+  --bg:#e8ebee;
+  --surface:#f6f7f8;
+  --ink:#1a2028;
+  --muted:#56606c;
+  --rule:#c6ccd3;
+  --stage-hi:#f6f7f9;
+  --stage-lo:#d3d9e0;
+  --grid:rgba(32,52,84,.07);
+  --leader:#252e39;
+  --card:rgba(255,255,255,.94);
+  --card-rule:rgba(26,32,40,.16);
+  --accent:#2747c8;
+  --accent-ink:#ffffff;
+  --accent-soft:rgba(39,71,200,.1);
+  --warn:#b4530a;
+  --track:#cdd3da;
+  --c-inner:#c3c9d1; --c-bush:#3f9e8f; --c-roller:#c86b36; --c-pin:#d6ab45; --c-outer:#4f6d9a; --c-steel:#8e959d;
+  --f-display:"Barlow Condensed","Arial Narrow","Roboto Condensed",sans-serif;
+  --f-body:"Barlow","Helvetica Neue",Arial,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1014; --surface:#151a21; --ink:#e4e8ed; --muted:#98a3af; --rule:#2a323c;
+  --stage-hi:#1c222b; --stage-lo:#0b0e12; --grid:rgba(150,175,210,.06); --leader:#cfd6df;
+  --card:rgba(19,24,31,.93); --card-rule:rgba(210,220,235,.17); --accent:#8aa3ff; --accent-ink:#0a0f1f;
+  --accent-soft:rgba(138,163,255,.14); --track:#2b333d; --warn:#f2a13b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1014; --surface:#151a21; --ink:#e4e8ed; --muted:#98a3af; --rule:#2a323c;
+  --stage-hi:#1c222b; --stage-lo:#0b0e12; --grid:rgba(150,175,210,.06); --leader:#cfd6df;
+  --card:rgba(19,24,31,.93); --card-rule:rgba(210,220,235,.17); --accent:#8aa3ff; --accent-ink:#0a0f1f;
+  --accent-soft:rgba(138,163,255,.14); --track:#2b333d; --warn:#f2a13b; color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.page{max-width:1240px;margin:0 auto;padding-inline:clamp(16px,3vw,32px);padding-block:clamp(16px,2.6vw,28px) 36px}
+
+.mast{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 40px;margin-bottom:16px}
+.mast > div{min-width:0}
+.kicker{font:500 12px/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+h1{font:700 clamp(32px,4.6vw,52px)/.92 var(--f-display);letter-spacing:.005em;text-transform:uppercase;margin:0;text-wrap:balance}
+.dek{margin:0;color:var(--muted);max-width:46ch;font-size:15px;line-height:1.45}
+
+.stage{position:relative;width:100%;aspect-ratio:16/9;max-height:calc(100vh - 190px);min-height:280px;overflow:hidden;border-radius:6px;border:1px solid var(--rule);
+  background:
+    linear-gradient(var(--grid) 1px,transparent 1px) 0 0/24px 24px,
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/24px 24px,
+    radial-gradient(125% 95% at 50% 32%,var(--stage-hi),var(--stage-lo));
+  --s:1}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block}
+#ov{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+#labels{position:absolute;inset:0;pointer-events:none}
+
+#ov .ld{fill:none;stroke:var(--leader);stroke-width:1.15}
+#ov .dot{fill:var(--leader)}
+#ov .dim{fill:none;stroke:var(--accent);stroke-width:1.25}
+#ov .dimh{fill:var(--accent)}
+#ov .pc{fill:none;stroke:var(--accent);stroke-width:1.5;stroke-dasharray:8 5}
+#ov .arw{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round}
+#ov .arwh{fill:var(--accent)}
+
+.lbl{position:absolute;left:0;top:0;display:none;font-size:calc(14px*var(--s));background:var(--card);border:1px solid var(--card-rule);border-radius:4px;
+  padding:.38em .62em .44em;color:var(--ink);white-space:nowrap;box-shadow:0 1px 1px rgba(0,0,0,.05),0 8px 22px -12px rgba(0,0,0,.4);will-change:transform,opacity}
+.lbl .hd{display:flex;align-items:center;gap:.45em;font:600 1.08em/1.15 var(--f-body)}
+.lbl .ball{flex:none;display:inline-grid;place-items:center;width:1.6em;height:1.6em;border-radius:50%;border:1.5px solid var(--ink);font:500 .76em/1 var(--f-mono)}
+.lbl .sw{flex:none;width:.74em;height:.74em;border-radius:2px;background:var(--c);box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+.lbl .qty{font:500 .78em/1 var(--f-mono);color:var(--muted);margin-left:.1em}
+.lbl .nt{font:400 .86em/1.3 var(--f-body);color:var(--muted);margin-top:.18em}
+.lbl.plain{background:none;border:0;box-shadow:none;padding:0;font:500 calc(13px*var(--s))/1 var(--f-mono);color:var(--accent)}
+.lbl.plain b{font-weight:500;background:var(--card);padding:.25em .45em;border-radius:3px}
+.lbl.key .hd{font-size:1.18em}
+.stage.narrow .lbl .nt{display:none}
+
+.hud{position:absolute;left:calc(18px*var(--s));top:calc(14px*var(--s));pointer-events:none;max-width:60%}
+.hud .eb{font:500 calc(11.5px*var(--s))/1 var(--f-mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.hud .tt{font:700 calc(32px*var(--s))/1 var(--f-display);text-transform:uppercase;letter-spacing:.012em;margin-top:.16em;text-wrap:balance}
+.hud .st{font:500 calc(12.5px*var(--s))/1.2 var(--f-mono);color:var(--accent);margin-top:.55em;min-height:1.2em}
+
+.caption{position:absolute;left:calc(18px*var(--s));bottom:calc(14px*var(--s));max-width:min(64%,42em);margin:0;
+  font:500 calc(16px*var(--s))/1.38 var(--f-body);background:var(--card);border:1px solid var(--card-rule);border-radius:4px;padding:.5em .8em .55em;text-wrap:pretty}
+.caption:empty{display:none}
+.caption.in{animation:capin .45s ease-out}
+@keyframes capin{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.caption-out{display:none;margin:10px 0 0;font:500 15px/1.4 var(--f-body);min-height:2.8em}
+
+.panel{position:absolute;right:calc(16px*var(--s));top:calc(14px*var(--s));font-size:calc(13px*var(--s));background:var(--card);border:1px solid var(--card-rule);
+  border-radius:4px;padding:.6em .75em .65em;transition:opacity .3s;min-width:14.5em}
+.panel h3{font:500 .76em/1 var(--f-mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 .6em;display:flex;justify-content:space-between;gap:1em}
+.panel.off{opacity:0;transition:none}
+.bom ol{list-style:none;margin:0;padding:0;display:grid;gap:.18em}
+.bom li{display:grid;grid-template-columns:1.6em .8em minmax(0,1fr) auto;align-items:center;gap:.55em;padding:.16em .3em;margin:0 -.3em;border-radius:3px;opacity:.32;transition:opacity .25s,background-color .25s}
+.bom li .ball{display:inline-grid;place-items:center;width:1.55em;height:1.55em;border-radius:50%;border:1.3px solid currentColor;font:500 .78em/1 var(--f-mono)}
+.bom li .sw{width:.8em;height:.8em;border-radius:2px;background:var(--c);box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+.bom li .nm{font-weight:500}
+.bom li .q{font:500 .9em/1 var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.bom li.on{opacity:1}
+.bom li.act{background:var(--accent-soft)}
+.bom li.act .nm{font-weight:600}
+.bom li .ck{display:inline-block;width:1.1em;text-align:right;color:var(--accent);visibility:hidden}
+.bom li.done .ck{visibility:visible}
+.info .row{display:flex;justify-content:space-between;gap:1.4em;padding:.14em 0;border-top:1px solid var(--card-rule)}
+.info .row:first-of-type{border-top:0}
+.info .row span{color:var(--muted)}
+.info .row b{font:500 1em/1.35 var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.fallback{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--muted)}
+
+.transport{display:flex;align-items:center;gap:10px;margin-top:12px}
+.btn{appearance:none;-webkit-appearance:none;border:1px solid var(--rule);background:var(--surface);color:var(--ink);height:40px;min-width:40px;padding:0 12px;border-radius:5px;
+  font:500 13px/1 var(--f-mono);display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;flex:none}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;width:48px}
+.btn svg{width:18px;height:18px;display:block}
+.btn:focus-visible,.chap:focus-visible,.scrub input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.scrub{position:relative;flex:1;min-width:0;height:40px;display:flex;align-items:center}
+.scrub input{-webkit-appearance:none;appearance:none;width:100%;height:40px;background:transparent;margin:0;cursor:pointer;--p:0%}
+.scrub input::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--accent) var(--p),var(--track) var(--p))}
+.scrub input::-moz-range-track{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--accent) var(--p),var(--track) var(--p))}
+.scrub input::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);margin-top:-5px}
+.scrub input::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--surface);border:2px solid var(--accent)}
+.ticks{position:absolute;left:8px;right:8px;top:50%;height:0;pointer-events:none}
+.ticks i{position:absolute;top:-8px;width:2px;height:16px;margin-left:-1px;background:var(--bg);border-radius:1px}
+.time{font:500 13px/1 var(--f-mono);font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+
+.chapters{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:12px}
+.chap{appearance:none;-webkit-appearance:none;text-align:left;border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:5px;
+  padding:9px 11px 11px;cursor:pointer;position:relative;overflow:hidden;min-width:0}
+.chap:hover{border-color:var(--muted)}
+.chap .n{display:block;font:500 11px/1 var(--f-mono);color:var(--muted);letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.chap .t{display:block;font:600 16px/1.1 var(--f-display);text-transform:uppercase;letter-spacing:.02em;margin-top:5px}
+.chap .bar{position:absolute;left:0;bottom:0;height:3px;background:var(--accent);width:0}
+.chap.cur{border-color:var(--accent)}
+.chap.cur .n{color:var(--accent)}
+
+.spec{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 32px;margin-top:22px;padding-top:14px;border-top:1px solid var(--rule)}
+.spec dl{display:flex;flex-wrap:wrap;gap:8px 28px;margin:0}
+.spec dt{font:500 11px/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.spec dd{margin:2px 0 0;font:500 14px/1.3 var(--f-mono);font-variant-numeric:tabular-nums}
+.keys{margin:0;color:var(--muted);font-size:13px;align-self:end}
+.keys kbd{font:500 12px var(--f-mono);border:1px solid var(--rule);border-bottom-width:2px;border-radius:3px;padding:0 4px;background:var(--surface);color:var(--ink)}
+
+
+/* ---------- GIF clip tool ---------- */
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary.wide{width:auto;padding:0 18px;font-weight:600}
+.btn.tool{font-weight:600;letter-spacing:.04em}
+.btn.tool svg{width:17px;height:17px}
+.btn.tool[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.gp-result img.tp{background:repeating-conic-gradient(var(--track) 0 25%,var(--surface) 0 50%) 0 0/16px 16px}
+.seg button:disabled{opacity:.45;cursor:not-allowed}
+.speedrow input:disabled{opacity:.4}
+.checks label:has(input:disabled){opacity:.45;cursor:not-allowed}
+.trim{position:absolute;left:8px;right:8px;top:0;bottom:0;pointer-events:none}
+.trim i{position:absolute;top:50%;display:block}
+.trim .shade{height:8px;margin-top:-4px;background:var(--bg);opacity:.72;border-radius:2px}
+.trim .sel{height:18px;margin-top:-9px;border-top:2px solid var(--accent);border-bottom:2px solid var(--accent);background:var(--accent-soft)}
+.trim .h{position:absolute;top:50%;width:14px;height:34px;margin-top:-17px;background:var(--accent);pointer-events:auto;cursor:ew-resize;
+  touch-action:none;display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.28)}
+.trim .h::before{content:"";position:absolute;inset:-6px -10px}
+.trim .h::after{content:"";width:2px;height:13px;border-radius:1px;background:var(--accent-ink);opacity:.85}
+.trim .h.s{margin-left:-14px;border-radius:7px 1px 1px 7px}
+.trim .h.e{border-radius:1px 7px 7px 1px}
+.trim .h:focus-visible,.trim .h.drag{outline:2px solid var(--ink);outline-offset:2px}
+.stage.clipmode .panel{display:none}
+.stage.nolabels #labels,.stage.nolabels #ov{display:none}
+.stage.nocaps .caption{display:none}
+.stage.notitle .hud{display:none}
+.busy{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:12px;background:var(--bg);z-index:5;padding:16px}
+.busy canvas{display:block;max-width:min(70vw,560px);width:100%;height:auto;border-radius:4px;border:1px solid var(--rule)}
+.busy b{font:700 22px/1 var(--f-display);text-transform:uppercase;letter-spacing:.02em}
+.busy span{font:500 13px/1 var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.gifpanel{margin-top:12px;border:1px solid var(--accent);border-radius:6px;background:var(--surface);padding:16px 18px 18px;display:grid;gap:16px}
+.gp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.gp-head>div{min-width:0}
+.gp-title{font:700 22px/1 var(--f-display);text-transform:uppercase;letter-spacing:.015em;margin:0 0 6px}
+.gp-hint{margin:0;color:var(--muted);font-size:14px;line-height:1.45;max-width:70ch}
+.gp-hint kbd{font:500 12px var(--f-mono);border:1px solid var(--rule);border-bottom-width:2px;border-radius:3px;padding:0 4px;background:var(--bg);color:var(--ink)}
+.gp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px 24px}
+.field{display:grid;gap:7px;align-content:start;min-width:0}
+.flabel{font:500 11px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.times{font:500 15px/1.3 var(--f-mono);font-variant-numeric:tabular-nums}
+.times small{display:block;font:400 13px/1.4 var(--f-body);color:var(--muted);margin-top:2px}
+.speedrow{display:flex;align-items:center;gap:10px}
+.speedrow input{flex:1;min-width:0;accent-color:var(--accent);height:26px}
+.speedval{font:600 15px/1 var(--f-mono);min-width:5ch;text-align:right;font-variant-numeric:tabular-nums}
+.speedscale{position:relative;height:12px;font:500 11px/1 var(--f-mono);color:var(--muted);margin:0 calc(5ch + 18px) 0 8px}
+.speedscale span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--rule);border-radius:5px;overflow:hidden;justify-self:start;max-width:100%}
+.seg button{appearance:none;-webkit-appearance:none;border:0;border-right:1px solid var(--rule);background:transparent;color:var(--ink);font:500 14px/1 var(--f-body);padding:10px 12px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.gifpanel select{appearance:none;-webkit-appearance:none;height:38px;border:1px solid var(--rule);border-radius:5px;color:var(--ink);font:500 14px var(--f-body);padding:0 34px 0 10px;cursor:pointer;
+  background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238a94a0' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center;justify-self:start;min-width:150px}
+.gifpanel select:focus-visible,.checks input:focus-visible,.speedrow input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.checks{display:flex;gap:18px;flex-wrap:wrap;font-size:15px;padding-top:4px}
+@media (min-width:700px){.field.wide{grid-column:span 2}}
+.checks label{display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+.checks input{width:17px;height:17px;accent-color:var(--accent);margin:0}
+.gp-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-top:2px;border-top:1px solid var(--rule);padding-top:14px}
+.gp-summary{font:500 13px/1.4 var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.gp-summary.warn{color:var(--warn)}
+.gp-progress{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.progress{flex:1;min-width:140px;height:6px;border-radius:3px;background:var(--track);overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--accent)}
+.gp-result{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.gp-result img{display:block;width:min(100%,480px);height:auto;border-radius:4px;border:1px solid var(--rule)}
+.gp-side{display:grid;gap:10px;min-width:0;align-content:start}
+.gifpanel.working .gp-grid,.gifpanel.working .gp-actions{opacity:.5;pointer-events:none}
+
+/* ---------- playback speed menu ---------- */
+.spd{position:relative;flex:none}
+#speed{min-width:62px;font-variant-numeric:tabular-nums}
+#speed[aria-expanded="true"]{border-color:var(--accent)}
+.speedmenu{position:absolute;bottom:calc(100% + 8px);left:0;z-index:30;width:max-content;background:var(--surface);border:1px solid var(--rule);border-radius:6px;
+  padding:9px 9px 10px;box-shadow:0 10px 28px rgba(0,0,0,.2)}
+.speedmenu[hidden]{display:none}
+.sm-h{margin:0 1px 7px;font:500 11px/1 var(--f-mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.sm-grid{display:grid;grid-template-columns:repeat(3,56px);gap:5px}
+.sm-grid button{appearance:none;-webkit-appearance:none;height:36px;border:1px solid var(--rule);border-radius:4px;background:var(--bg);color:var(--ink);
+  font:500 13px/1 var(--f-mono);font-variant-numeric:tabular-nums;cursor:pointer;padding:0}
+.sm-grid button:hover{border-color:var(--muted)}
+.sm-grid button[aria-checked="true"]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.sm-grid button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn.pulse{animation:spdpulse .6s ease-out}
+@keyframes spdpulse{from{box-shadow:0 0 0 0 var(--accent)}to{box-shadow:0 0 0 7px transparent}}
+
+/* ---------- full screen: the stage fills the screen, the controls float over it ---------- */
+.player.is-full{position:relative;width:100%;height:100%;margin:0;background:var(--bg);overflow:hidden}
+.player.is-full.pseudo{position:fixed;inset:0;z-index:50;height:100vh;height:100dvh}
+.player:fullscreen{width:100%;height:100%}
+.player::backdrop{background:var(--bg)}
+.player.is-full .stage{position:absolute;inset:0;width:100%;height:100%;max-height:none;min-height:0;aspect-ratio:auto;border:0;border-radius:0}
+.player.is-full .stage .hud{top:calc(14px*var(--s) + env(safe-area-inset-top,0px));display:block}
+.player.is-full .stage .caption{display:block;transition:bottom .25s ease}
+.player.is-full .stage .caption:empty{display:none}
+.player.is-full.show-ctl .stage .caption{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+.player.is-full .transport{position:absolute;left:0;right:0;bottom:0;z-index:6;margin:0;
+  padding:28px clamp(12px,2.5vw,28px) calc(14px + env(safe-area-inset-bottom,0px));
+  background:linear-gradient(to top,var(--bg) 0,var(--bg) 45%,transparent);transition:opacity .25s ease,transform .25s ease}
+.player.is-full:not(.show-ctl) .transport{opacity:0;transform:translateY(10px);pointer-events:none}
+.player.is-full:not(.show-ctl){cursor:none}
+.player.is-full .gifpanel,.player.is-full .chapters,.player.is-full .caption-out,.player.is-full .btn.tool{display:none}
+.player.is-full .transport{flex-wrap:nowrap}
+.player.is-full .scrub{flex-basis:auto}
+.player.is-full .transport .spd{flex:none}
+.player.is-full .transport .spd #speed{width:auto}
+.player.is-full .stage{-webkit-user-select:none;user-select:none}
+html.fs-lock,html.fs-lock body{overflow:hidden}
+@media (prefers-reduced-motion:reduce){.player.is-full .transport,.player.is-full .stage .caption{transition:none}.btn.pulse{animation:none}}
+
+@media (max-width:760px){
+  .chapters{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .stage{aspect-ratio:4/3}
+}
+@media (max-width:560px){
+  .player.is-full .stage .caption:not(:empty),.player.is-full .stage .hud{display:block}
+  .transport{flex-wrap:wrap}
+  .scrub{flex-basis:calc(100% - 132px)}
+  .transport .btn.tool,.transport .spd{flex:1}
+  .transport .spd #speed{width:100%}
+  .stage .caption,.stage .panel,.stage .hud{display:none}
+  .caption-out{display:block}
+  .hud .tt{font-size:24px}
+  .time{display:none}
+  .keys{display:none}
+}
+@media (max-width:400px){ .chapters{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (prefers-reduced-motion:reduce){ .caption.in{animation:none} }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="mast">
+    <div>
+      <p class="kicker">Mechanism study &middot; ANSI #40 roller chain</p>
+      <h1>Roller Chain &amp; Sprockets</h1>
+    </div>
+    <p class="dek">Five kinds of parts make a chain. The rollers drop into the gaps between sprocket teeth, so one loop of chain can carry turning motion from one shaft to another.</p>
+  </header>
+
+  <section class="player" id="player" aria-label="Animation player">
+    <div class="stage" id="stage">
+      <canvas id="gl" role="img" aria-label="3D animation: roller chain parts, assembly, a sprocket, and a two-sprocket chain drive"></canvas>
+      <svg id="ov" aria-hidden="true"></svg>
+      <div id="labels" aria-hidden="true"></div>
+      <div class="hud" aria-hidden="true">
+        <div class="eb" id="eb">Chapter 1 of 6</div>
+        <div class="tt" id="tt">Taken apart</div>
+        <div class="st" id="st"></div>
+      </div>
+      <div class="panel bom" id="bom">
+        <h3><span>Parts list</span><span>Qty</span></h3>
+        <ol>
+          <li data-k="inner"><span class="ball">1</span><i class="sw" style="--c:var(--c-inner)"></i><span class="nm">Inner plate</span><span class="q">4<span class="ck">&#10003;</span></span></li>
+          <li data-k="bush"><span class="ball">2</span><i class="sw" style="--c:var(--c-bush)"></i><span class="nm">Bushing</span><span class="q">4<span class="ck">&#10003;</span></span></li>
+          <li data-k="roller"><span class="ball">3</span><i class="sw" style="--c:var(--c-roller)"></i><span class="nm">Roller</span><span class="q">4<span class="ck">&#10003;</span></span></li>
+          <li data-k="pin"><span class="ball">4</span><i class="sw" style="--c:var(--c-pin)"></i><span class="nm">Pin</span><span class="q">2<span class="ck">&#10003;</span></span></li>
+          <li data-k="outer"><span class="ball">5</span><i class="sw" style="--c:var(--c-outer)"></i><span class="nm">Outer plate</span><span class="q">2<span class="ck">&#10003;</span></span></li>
+        </ol>
+      </div>
+      <div class="panel info off" id="info"></div>
+      <p class="caption" id="caption" aria-live="polite"></p>
+      <div class="busy" id="busy" hidden><div id="busyCv"></div><b id="busyH">Making GIF</b><span id="busyT"></span></div>
+      <div class="fallback" id="fallback" hidden>This animation needs WebGL, which this browser has turned off.</div>
+    </div>
+    <p class="caption-out" id="caption2"></p>
+
+    <div class="transport">
+      <button class="btn primary" id="play" type="button" aria-label="Pause">
+        <svg id="icoPause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg>
+        <svg id="icoPlay" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.2-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg>
+      </button>
+      <button class="btn" id="restart" type="button" aria-label="Restart from the beginning">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 1 0 2.05-4.95" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4.5 3.5v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="scrub"><input id="scrub" type="range" min="0" max="172" step="0.01" value="0" aria-label="Timeline"><div class="ticks" id="ticks"></div><div class="trim" id="trim" hidden><i class="shade" id="shL"></i><i class="shade" id="shR"></i><i class="sel" id="tsel"></i><span class="h s" id="hS" role="slider" tabindex="0" aria-label="GIF start" aria-valuemin="0"></span><span class="h e" id="hE" role="slider" tabindex="0" aria-label="GIF end" aria-valuemin="0"></span></div></div>
+      <span class="time" id="time">0:00 / 2:52</span>
+      <div class="spd" id="spd">
+        <button class="btn" id="speed" type="button" aria-label="Playback speed 1&times;" aria-haspopup="menu" aria-expanded="false" aria-controls="speedMenu" title="Playback speed (&lt; and &gt;)">1&times;</button>
+        <div class="speedmenu" id="speedMenu" role="menu" aria-label="Playback speed" hidden><p class="sm-h">Playback speed</p><div class="sm-grid" id="smGrid"></div></div>
+      </div>
+      <button class="btn tool" id="gifBtn" type="button" aria-pressed="false" title="Make a GIF from part of the animation (G)">GIF</button>
+      <button class="btn tool" id="photoBtn" type="button" aria-pressed="false" title="Save a photo of this frame (P)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2.2l1.4-2h5.8l1.4 2h2.2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Photo</button>
+      <button class="btn" id="fsBtn" type="button" aria-label="Full screen" title="Full screen (F)"><svg id="icoFs" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><svg id="icoFsX" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <section class="gifpanel" id="gifPanel" hidden aria-label="Make a GIF">
+      <div class="gp-head">
+        <div>
+          <h2 class="gp-title">Make a GIF</h2>
+          <p class="gp-hint">Drag the two handles on the timeline to mark where the GIF starts and ends. Click a chapter to select all of it, or press <kbd>I</kbd> and <kbd>O</kbd> to set the start and end at the playhead.</p>
+        </div>
+        <button class="btn" id="gClose" type="button">Done</button>
+      </div>
+      <div class="gp-grid">
+        <div class="field"><span class="flabel">Clip</span><span class="times" id="gTimes"></span></div>
+        <div class="field">
+          <label class="flabel" for="gSpeed">GIF speed</label>
+          <div class="speedrow"><input type="range" id="gSpeed" min="-2" max="5" step="0.01" value="0"><output class="speedval" id="gSpeedV" for="gSpeed">1&times;</output></div>
+          <div class="speedscale" aria-hidden="true"><span style="left:0%">0.25&times;</span><span style="left:28.57%">1&times;</span><span style="left:57.14%">4&times;</span><span style="left:85.71%">16&times;</span><span style="left:100%">32&times;</span></div>
+        </div>
+        <div class="field">
+          <span class="flabel" id="gDirL">Direction</span>
+          <div class="seg" id="gDir" role="group" aria-labelledby="gDirL"><button type="button" data-v="fwd" aria-pressed="true">Forward</button><button type="button" data-v="rev" aria-pressed="false">Reverse</button><button type="button" data-v="pp" aria-pressed="false">Back and forth</button></div>
+        </div>
+        <div class="field"><label class="flabel" for="gSize">Size</label>
+          <select id="gSize"><option value="s">480 &times; 270</option><option value="m" selected>640 &times; 360</option><option value="l">800 &times; 450</option><option value="xl">960 &times; 540</option></select></div>
+        <div class="field"><label class="flabel" for="gFps">Frame rate</label>
+          <select id="gFps"><option value="10">10 frames/s</option><option value="15" selected>15 frames/s</option><option value="20">20 frames/s</option><option value="25">25 frames/s</option></select></div>
+        <div class="field wide"><span class="flabel">Include</span>
+          <div class="checks"><label><input type="checkbox" id="gLabels" checked> Labels</label><label><input type="checkbox" id="gTitle" checked> Top title</label><label><input type="checkbox" id="gCaps" checked> Bottom caption</label></div></div>
+      </div>
+      <div class="gp-actions">
+        <button class="btn" id="gPreview" type="button" aria-pressed="false">Preview loop</button>
+        <button class="btn primary wide" id="gMake" type="button">Make GIF</button>
+        <span class="gp-summary" id="gSummary" aria-live="polite"></span>
+        <button class="btn" id="gFit" type="button" hidden></button>
+      </div>
+      <div class="gp-progress" id="gProg" hidden><div class="progress"><i id="gBar"></i></div><span class="gp-summary" id="gProgT"></span><button class="btn" id="gCancel" type="button">Cancel</button></div>
+      <div class="gp-result" id="gResult" hidden>
+        <img id="gImg" alt="The GIF you just made, playing">
+        <div class="gp-side"><span class="gp-summary" id="gInfo"></span><button class="btn primary wide" id="gSave" type="button" hidden>Save GIF</button><p class="gp-hint" id="gSaveNote" hidden></p></div>
+      </div>
+    </section>
+    <section class="gifpanel" id="photoPanel" hidden aria-label="Save a photo">
+      <div class="gp-head">
+        <div>
+          <h2 class="gp-title">Save a photo</h2>
+          <p class="gp-hint">Takes a still of the frame at the playhead. Scrub the timeline or click a chapter to choose the moment.</p>
+        </div>
+        <button class="btn" id="pClose" type="button">Done</button>
+      </div>
+      <div class="gp-grid">
+        <div class="field"><span class="flabel">Frame</span><span class="times" id="pTime"></span></div>
+        <div class="field"><label class="flabel" for="pSize">Size</label>
+          <select id="pSize"><option value="screen">As on screen</option><option value="hd">1280 &times; 720</option><option value="fhd" selected>1920 &times; 1080 (Full HD)</option><option value="qhd">2560 &times; 1440</option><option value="uhd">3840 &times; 2160 (4K)</option></select></div>
+        <div class="field">
+          <span class="flabel" id="pFmtL">Format</span>
+          <div class="seg" id="pFmt" role="group" aria-labelledby="pFmtL"><button type="button" data-v="png" aria-pressed="true">PNG</button><button type="button" data-v="jpg" aria-pressed="false">JPG</button></div>
+        </div>
+        <div class="field">
+          <label class="flabel" for="pQual">JPG quality</label>
+          <div class="speedrow"><input type="range" id="pQual" min="50" max="100" step="1" value="92"><output class="speedval" id="pQualV" for="pQual">92%</output></div>
+          <span class="gp-hint" id="pQualNote"></span>
+        </div>
+        <div class="field wide"><span class="flabel">Include</span>
+          <div class="checks"><label><input type="checkbox" id="pLabels" checked> Labels</label><label><input type="checkbox" id="pTitle" checked> Top title</label><label><input type="checkbox" id="pCaps" checked> Bottom caption</label><label><input type="checkbox" id="pTrans"> Transparent background</label></div></div>
+      </div>
+      <div class="gp-actions">
+        <button class="btn primary wide" id="pTake" type="button">Take photo</button>
+        <span class="gp-summary" id="pSummary" aria-live="polite"></span>
+      </div>
+      <div class="gp-result" id="pResult" hidden>
+        <img id="pImg" alt="The photo you just took">
+        <div class="gp-side"><span class="gp-summary" id="pInfo"></span><button class="btn primary wide" id="pSave" type="button" hidden>Save photo</button><p class="gp-hint" id="pSaveNote" hidden></p></div>
+      </div>
+    </section>
+    <nav class="chapters" id="chapters" aria-label="Chapters"></nav>
+  </section>
+
+  <footer class="spec">
+    <dl>
+      <div><dt>Chain</dt><dd>ANSI #40, 12.7 mm pitch</dd></div>
+      <div><dt>Roller</dt><dd>&Oslash; 7.92 mm</dd></div>
+      <div><dt>Pin</dt><dd>&Oslash; 3.96 mm</dd></div>
+      <div><dt>Sprockets</dt><dd>18 T and 36 T</dd></div>
+    </dl>
+    <p class="keys"><kbd>Space</kbd> play / pause &nbsp; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> skip 5 s &nbsp; <kbd>1</kbd>&ndash;<kbd>6</kbd> chapters &nbsp; <kbd>G</kbd> make a GIF &nbsp; <kbd>P</kbd> save a photo &nbsp; <kbd>&lt;</kbd> <kbd>&gt;</kbd> speed &nbsp; <kbd>F</kbd> full screen</p>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* gifenc 1.0.3, MIT License, Copyright (c) 2017 Matt DesLauriers, https://github.com/mattdesl/gifenc */
+const GIFENC=(function(){var X={signature:"GIF",version:"89a",trailer:59,extensionIntroducer:33,applicationExtensionLabel:255,graphicControlExtensionLabel:249,imageSeparator:44,signatureSize:3,versionSize:3,globalColorTableFlagMask:128,colorResolutionMask:112,sortFlagMask:8,globalColorTableSizeMask:7,applicationIdentifierSize:8,applicationAuthCodeSize:3,disposalMethodMask:28,userInputFlagMask:2,transparentColorFlagMask:1,localColorTableFlagMask:128,interlaceFlagMask:64,idSortFlagMask:32,localColorTableSizeMask:7};function F(t=256){let e=0,s=new Uint8Array(t);return{get buffer(){return s.buffer},reset(){e=0},bytesView(){return s.subarray(0,e)},bytes(){return s.slice(0,e)},writeByte(r){n(e+1),s[e]=r,e++},writeBytes(r,o=0,i=r.length){n(e+i);for(let c=0;c<i;c++)s[e++]=r[c+o]},writeBytesView(r,o=0,i=r.byteLength){n(e+i),s.set(r.subarray(o,o+i),e),e+=i}};function n(r){var o=s.length;if(o>=r)return;var i=1024*1024;r=Math.max(r,o*(o<i?2:1.125)>>>0),o!=0&&(r=Math.max(r,256));let c=s;s=new Uint8Array(r),e>0&&s.set(c.subarray(0,e),0)}}var O=12,J=5003,lt=[0,1,3,7,15,31,63,127,255,511,1023,2047,4095,8191,16383,32767,65535];function at(t,e,s,n,r=F(512),o=new Uint8Array(256),i=new Int32Array(J),c=new Int32Array(J)){let x=i.length,a=Math.max(2,n);o.fill(0),c.fill(0),i.fill(-1);let l=0,f=0,g=a+1,h=g,b=!1,w=h,_=(1<<w)-1,u=1<<g-1,k=u+1,B=u+2,p=0,A=s[0],z=0;for(let y=x;y<65536;y*=2)++z;z=8-z,r.writeByte(a),I(u);let d=s.length;for(let y=1;y<d;y++){t:{let m=s[y],v=(m<<O)+A,M=m<<z^A;if(i[M]===v){A=c[M];break t}let V=M===0?1:x-M;for(;i[M]>=0;)if(M-=V,M<0&&(M+=x),i[M]===v){A=c[M];break t}I(A),A=m,B<1<<O?(c[M]=B++,i[M]=v):(i.fill(-1),B=u+2,b=!0,I(u))}}return I(A),I(k),r.writeByte(0),r.bytesView();function I(y){for(l&=lt[f],f>0?l|=y<<f:l=y,f+=w;f>=8;)o[p++]=l&255,p>=254&&(r.writeByte(p),r.writeBytesView(o,0,p),p=0),l>>=8,f-=8;if((B>_||b)&&(b?(w=h,_=(1<<w)-1,b=!1):(++w,_=w===O?1<<w:(1<<w)-1)),y==k){for(;f>0;)o[p++]=l&255,p>=254&&(r.writeByte(p),r.writeBytesView(o,0,p),p=0),l>>=8,f-=8;p>0&&(r.writeByte(p),r.writeBytesView(o,0,p),p=0)}}}var $=at;function D(t,e,s){return t<<8&63488|e<<2&992|s>>3}function G(t,e,s,n){return t>>4|e&240|(s&240)<<4|(n&240)<<8}function j(t,e,s){return t>>4<<8|e&240|s>>4}function R(t,e,s){return t<e?e:t>s?s:t}function T(t){return t*t}function tt(t,e,s){var n=0,r=1e100;let o=t[e],i=o.cnt,c=o.ac,x=o.rc,a=o.gc,l=o.bc;for(var f=o.fw;f!=0;f=t[f].fw){let h=t[f],b=h.cnt,w=i*b/(i+b);if(!(w>=r)){var g=0;s&&(g+=w*T(h.ac-c),g>=r)||(g+=w*T(h.rc-x),!(g>=r)&&(g+=w*T(h.gc-a),!(g>=r)&&(g+=w*T(h.bc-l),!(g>=r)&&(r=g,n=f))))}}o.err=r,o.nn=n}function Q(){return{ac:0,rc:0,gc:0,bc:0,cnt:0,nn:0,fw:0,bk:0,tm:0,mtm:0,err:0}}function ut(t,e){let s=e==="rgb444"?4096:65536,n=new Array(s),r=t.length;if(e==="rgba4444")for(let o=0;o<r;++o){let i=t[o],c=i>>24&255,x=i>>16&255,a=i>>8&255,l=i&255,f=G(l,a,x,c),g=f in n?n[f]:n[f]=Q();g.rc+=l,g.gc+=a,g.bc+=x,g.ac+=c,g.cnt++}else if(e==="rgb444")for(let o=0;o<r;++o){let i=t[o],c=i>>16&255,x=i>>8&255,a=i&255,l=j(a,x,c),f=l in n?n[l]:n[l]=Q();f.rc+=a,f.gc+=x,f.bc+=c,f.cnt++}else for(let o=0;o<r;++o){let i=t[o],c=i>>16&255,x=i>>8&255,a=i&255,l=D(a,x,c),f=l in n?n[l]:n[l]=Q();f.rc+=a,f.gc+=x,f.bc+=c,f.cnt++}return n}function H(t,e,s={}){let{format:n="rgb565",clearAlpha:r=!0,clearAlphaColor:o=0,clearAlphaThreshold:i=0,oneBitAlpha:c=!1}=s;if(!t||!t.buffer)throw new Error("quantize() expected RGBA Uint8Array data");if(!(t instanceof Uint8Array)&&!(t instanceof Uint8ClampedArray))throw new Error("quantize() expected RGBA Uint8Array data");let x=new Uint32Array(t.buffer),a=s.useSqrt!==!1,l=n==="rgba4444",f=ut(x,n),g=f.length,h=g-1,b=new Uint32Array(g+1);for(var w=0,u=0;u<g;++u){let C=f[u];if(C!=null){var _=1/C.cnt;l&&(C.ac*=_),C.rc*=_,C.gc*=_,C.bc*=_,f[w++]=C}}T(e)/w<.022&&(a=!1);for(var u=0;u<w-1;++u)f[u].fw=u+1,f[u+1].bk=u,a&&(f[u].cnt=Math.sqrt(f[u].cnt));a&&(f[u].cnt=Math.sqrt(f[u].cnt));var k,B,p;for(u=0;u<w;++u){tt(f,u,!1);var A=f[u].err;for(B=++b[0];B>1&&(p=B>>1,!(f[k=b[p]].err<=A));B=p)b[B]=k;b[B]=u}var z=w-e;for(u=0;u<z;){for(var d;;){var I=b[1];if(d=f[I],d.tm>=d.mtm&&f[d.nn].mtm<=d.tm)break;d.mtm==h?I=b[1]=b[b[0]--]:(tt(f,I,!1),d.tm=u);var A=f[I].err;for(B=1;(p=B+B)<=b[0]&&(p<b[0]&&f[b[p]].err>f[b[p+1]].err&&p++,!(A<=f[k=b[p]].err));B=p)b[B]=k;b[B]=I}var y=f[d.nn],m=d.cnt,v=y.cnt,_=1/(m+v);l&&(d.ac=_*(m*d.ac+v*y.ac)),d.rc=_*(m*d.rc+v*y.rc),d.gc=_*(m*d.gc+v*y.gc),d.bc=_*(m*d.bc+v*y.bc),d.cnt+=y.cnt,d.mtm=++u,f[y.bk].fw=y.fw,f[y.fw].bk=y.bk,y.mtm=h}let M=[];var V=0;for(u=0;;++V){let L=R(Math.round(f[u].rc),0,255),C=R(Math.round(f[u].gc),0,255),Y=R(Math.round(f[u].bc),0,255),E=255;if(l){if(E=R(Math.round(f[u].ac),0,255),c){let st=typeof c=="number"?c:127;E=E<=st?0:255}r&&E<=i&&(L=C=Y=o,E=0)}let K=l?[L,C,Y,E]:[L,C,Y];if(xt(M,K)||M.push(K),(u=f[u].fw)==0)break}return M}function xt(t,e){for(let s=0;s<t.length;s++){let n=t[s],r=n[0]===e[0]&&n[1]===e[1]&&n[2]===e[2],o=n.length>=4&&e.length>=4?n[3]===e[3]:!0;if(r&&o)return!0}return!1}function U(t,e){var s=0,n;for(n=0;n<t.length;n++){let r=t[n]-e[n];s+=r*r}return s}function P(t,e){return e>1?Math.round(t/e)*e:t}function et(t,{roundRGB:e=5,roundAlpha:s=10,oneBitAlpha:n=null}={}){let r=new Uint32Array(t.buffer);for(let o=0;o<r.length;o++){let i=r[o],c=i>>24&255,x=i>>16&255,a=i>>8&255,l=i&255;if(c=P(c,s),n){let f=typeof n=="number"?n:127;c=c<=f?0:255}l=P(l,e),a=P(a,e),x=P(x,e),r[o]=c<<24|x<<16|a<<8|l<<0}}function nt(t,e,s="rgb565"){if(!t||!t.buffer)throw new Error("quantize() expected RGBA Uint8Array data");if(!(t instanceof Uint8Array)&&!(t instanceof Uint8ClampedArray))throw new Error("quantize() expected RGBA Uint8Array data");if(e.length>256)throw new Error("applyPalette() only works with 256 colors or less");let n=new Uint32Array(t.buffer),r=n.length,o=s==="rgb444"?4096:65536,i=new Uint8Array(r),c=new Array(o),x=s==="rgba4444";if(s==="rgba4444")for(let a=0;a<r;a++){let l=n[a],f=l>>24&255,g=l>>16&255,h=l>>8&255,b=l&255,w=G(b,h,g,f),_=w in c?c[w]:c[w]=gt(b,h,g,f,e);i[a]=_}else{let a=s==="rgb444"?j:D;for(let l=0;l<r;l++){let f=n[l],g=f>>16&255,h=f>>8&255,b=f&255,w=a(b,h,g),_=w in c?c[w]:c[w]=bt(b,h,g,e);i[l]=_}}return i}function gt(t,e,s,n,r){let o=0,i=1e100;for(let c=0;c<r.length;c++){let x=r[c],a=x[3],l=q(a-n);if(l>i)continue;let f=x[0];if(l+=q(f-t),l>i)continue;let g=x[1];if(l+=q(g-e),l>i)continue;let h=x[2];l+=q(h-s),!(l>i)&&(i=l,o=c)}return o}function bt(t,e,s,n){let r=0,o=1e100;for(let i=0;i<n.length;i++){let c=n[i],x=c[0],a=q(x-t);if(a>o)continue;let l=c[1];if(a+=q(l-e),a>o)continue;let f=c[2];a+=q(f-s),!(a>o)&&(o=a,r=i)}return r}function rt(t,e,s=5){if(!t.length||!e.length)return;let n=t.map(i=>i.slice(0,3)),r=s*s,o=t[0].length;for(let i=0;i<e.length;i++){let c=e[i];c.length<o?c=[c[0],c[1],c[2],255]:c.length>o?c=c.slice(0,3):c=c.slice();let x=N(n,c.slice(0,3),U),a=x[0],l=x[1];l>0&&l<=r&&(t[a]=c)}}function q(t){return t*t}function W(t,e,s=U){let n=Infinity,r=-1;for(let o=0;o<t.length;o++){let i=t[o],c=s(e,i);c<n&&(n=c,r=o)}return r}function N(t,e,s=U){let n=Infinity,r=-1;for(let o=0;o<t.length;o++){let i=t[o],c=s(e,i);c<n&&(n=c,r=o)}return[r,n]}function ot(t,e,s=U){return t[W(t,e,s)]}function ct(t={}){let{initialCapacity:e=4096,auto:s=!0}=t,n=F(e),r=5003,o=new Uint8Array(256),i=new Int32Array(r),c=new Int32Array(r),x=!1;return{reset(){n.reset(),x=!1},finish(){n.writeByte(X.trailer)},bytes(){return n.bytes()},bytesView(){return n.bytesView()},get buffer(){return n.buffer},get stream(){return n},writeHeader:a,writeFrame(l,f,g,h={}){let{transparent:b=!1,transparentIndex:w=0,delay:_=0,palette:u=null,repeat:k=0,colorDepth:B=8,dispose:p=-1}=h,A=!1;if(s?x||(A=!0,a(),x=!0):A=Boolean(h.first),f=Math.max(0,Math.floor(f)),g=Math.max(0,Math.floor(g)),A){if(!u)throw new Error("First frame must include a { palette } option");pt(n,f,g,u,B),it(n,u),k>=0&&dt(n,k)}let z=Math.round(_/10);wt(n,p,z,b,w);let d=Boolean(u)&&!A;ht(n,f,g,d?u:null),d&&it(n,u),yt(n,l,f,g,B,o,i,c)}};function a(){ft(n,"GIF89a")}}function wt(t,e,s,n,r){t.writeByte(33),t.writeByte(249),t.writeByte(4),r<0&&(r=0,n=!1);var o,i;n?(o=1,i=2):(o=0,i=0),e>=0&&(i=e&7),i<<=2;let c=0;t.writeByte(0|i|c|o),S(t,s),t.writeByte(r||0),t.writeByte(0)}function pt(t,e,s,n,r=8){let o=1,i=0,c=Z(n.length)-1,x=o<<7|r-1<<4|i<<3|c,a=0,l=0;S(t,e),S(t,s),t.writeBytes([x,a,l])}function dt(t,e){t.writeByte(33),t.writeByte(255),t.writeByte(11),ft(t,"NETSCAPE2.0"),t.writeByte(3),t.writeByte(1),S(t,e),t.writeByte(0)}function it(t,e){let s=1<<Z(e.length);for(let n=0;n<s;n++){let r=[0,0,0];n<e.length&&(r=e[n]),t.writeByte(r[0]),t.writeByte(r[1]),t.writeByte(r[2])}}function ht(t,e,s,n){if(t.writeByte(44),S(t,0),S(t,0),S(t,e),S(t,s),n){let r=0,o=0,i=Z(n.length)-1;t.writeByte(128|r|o|0|i)}else t.writeByte(0)}function yt(t,e,s,n,r=8,o,i,c){$(s,n,e,r,t,o,i,c)}function S(t,e){t.writeByte(e&255),t.writeByte(e>>8&255)}function ft(t,e){for(var s=0;s<e.length;s++)t.writeByte(e.charCodeAt(s))}function Z(t){return Math.max(Math.ceil(Math.log2(t)),1)}var Bt=ct;
+return {GIFEncoder:ct,quantize:H,applyPalette:nt};})();
+</script>
+<script>
+(function boot(){
+  if (window.THREE) return main();
+  var s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js';
+  s.onload=main;
+  s.onerror=function(){ document.getElementById('fallback').hidden=false; };
+  document.head.appendChild(s);
+})();
+
+function main(){
+'use strict';
+const $=id=>document.getElementById(id);
+const stage=$('stage'), canvas=$('gl'), ov=$('ov'), labelsEl=$('labels');
+const SVGNS='http://www.w3.org/2000/svg';
+
+/* ---------- small math ---------- */
+const clamp=(x,a=0,b=1)=>x<a?a:x>b?b:x;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const seg=(t,a,b)=>clamp((t-a)/(b-a));
+const io=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const eo=t=>1-Math.pow(1-t,3);
+const ei=t=>t*t*t;
+const sm=t=>t*t*(3-2*t);
+const DEG=Math.PI/180, TAU=Math.PI*2;
+const win=(t,a,b,f=.35)=>Math.min(seg(t,a,a+f),1-seg(t,b-f,b));   // fade in at a, out by b
+const wrapPi=a=>{while(a>Math.PI)a-=TAU;while(a<-Math.PI)a+=TAU;return a;};
+
+/* ---------- real dimensions: ANSI #40 (mm) ---------- */
+const P=12.7;
+const DIM={rollerR:3.96,rollerRi:2.84,rollerH:3.75,bushRo:2.78,bushRi:2.02,bushH:5.4,pinR:1.98,pinH:7.0,pinHead:.5,
+  plateT:1.5,plateR:6.0,plateW:4.6,zIn:4.65,zOut:6.25};
+const COL={inner:'#c3c9d1',bush:'#3f9e8f',roller:'#c86b36',pin:'#d6ab45',outer:'#4f6d9a',steel:'#b2b8bf',clip:'#39424e'};
+
+/* ---------- renderer ---------- */
+let renderer;
+try{ renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'high-performance'}); }
+catch(e){ $('fallback').hidden=false; return; }
+renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.05;
+renderer.setClearColor(0x000000,0);
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(30,16/9,2,5000);
+scene.environment=makeEnv();
+scene.add(new THREE.HemisphereLight(0xffffff,0x39414d,.45));
+const key=new THREE.DirectionalLight(0xffffff,1.15); key.position.set(-120,220,260); scene.add(key);
+const rim=new THREE.DirectionalLight(0xdde6ff,.5); rim.position.set(220,60,-160); scene.add(rim);
+
+function makeEnv(){
+  const s=new THREE.Scene();
+  const g=new THREE.SphereGeometry(100,48,24), pos=g.attributes.position, col=[];
+  for(let i=0;i<pos.count;i++){
+    const y=pos.getY(i)/100;
+    const v=y>0?lerp(.3,.78,Math.pow(y,.8)):lerp(.3,.07,Math.pow(-y,.7));
+    col.push(v,v*1.01,v*1.05);
+  }
+  g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+  s.add(new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide})));
+  const box=(w,h,x,y,z,i)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color(i,i,i),side:THREE.DoubleSide}));m.position.set(x,y,z);m.lookAt(0,0,0);s.add(m);};
+  box(70,40,-10,70,50,4.0);
+  box(18,70,-80,10,20,2.2);
+  box(18,70,80,15,-20,1.8);
+  box(60,14,0,-20,80,.9);
+  box(40,30,30,40,-80,1.2);
+  const pm=new THREE.PMREMGenerator(renderer);
+  const tex=pm.fromScene(s,.035).texture; pm.dispose();
+  return tex;
+}
+
+/* ---------- materials ---------- */
+function metal(hex,rough,met){
+  const m=new THREE.MeshStandardMaterial({color:new THREE.Color(hex).convertSRGBToLinear(),roughness:rough,metalness:met});
+  m.userData.base=m.color.clone(); return m;
+}
+// front-side plates get their own materials so a cutaway can fade them on their own
+const MAT={inner:metal(COL.inner,.3,.85),innerF:metal(COL.inner,.3,.85),bush:metal(COL.bush,.34,.6),roller:metal(COL.roller,.32,.62),
+  pin:metal(COL.pin,.26,.8),outer:metal(COL.outer,.34,.7),outerF:metal(COL.outer,.34,.7),clip:metal(COL.clip,.3,.8)};
+
+/* ---------- geometry ---------- */
+// surface of revolution around Z; strips are smooth inside, creased between strips
+function revolve(strips,segs=44){
+  const pos=[],nor=[],idx=[]; let base=0;
+  for(const s of strips){
+    const n=s.length, nr=[], nz=[];
+    for(let i=0;i<n;i++){
+      const a=s[Math.max(0,i-1)], b=s[Math.min(n-1,i+1)];
+      let tr=b[0]-a[0], tz=b[1]-a[1]; const l=Math.hypot(tr,tz)||1; tr/=l; tz/=l;
+      nr.push(tz); nz.push(-tr);
+    }
+    for(let j=0;j<=segs;j++){
+      const th=j/segs*TAU, c=Math.cos(th), si=Math.sin(th);
+      for(let i=0;i<n;i++){ pos.push(s[i][0]*c,s[i][0]*si,s[i][1]); nor.push(nr[i]*c,nr[i]*si,nz[i]); }
+    }
+    for(let j=0;j<segs;j++)for(let i=0;i<n-1;i++){
+      const a=base+j*n+i, b=base+(j+1)*n+i; idx.push(a,b,a+1, b,b+1,a+1);
+    }
+    base+=(segs+1)*n;
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+  g.setIndex(idx); return g;
+}
+function arcPts(cx,cz,r,a0,a1,n){const o=[];for(let i=0;i<=n;i++){const a=lerp(a0,a1,i/n);o.push([cx+r*Math.cos(a),cz+r*Math.sin(a)]);}return o;}
+
+function pinGeo(){
+  const R=DIM.pinR,H=DIM.pinH,h=DIM.pinHead, bot=[], top=[];
+  for(let i=0;i<=8;i++){const a=i/8*Math.PI/2; bot.push([R*Math.sin(a),-(H+h*Math.cos(a))]);}
+  for(let i=8;i>=0;i--){const a=i/8*Math.PI/2; top.push([R*Math.sin(a),H+h*Math.cos(a)]);}
+  return revolve([bot,[[R,-H],[R,H]],top],36);
+}
+function bushGeo(){
+  const Ro=DIM.bushRo,Ri=DIM.bushRi,H=DIM.bushH,c=.16;
+  return revolve([[[Ri,-H],[Ro-c,-H]],[[Ro-c,-H],[Ro,-H+c]],[[Ro,-H+c],[Ro,H-c]],[[Ro,H-c],[Ro-c,H]],[[Ro-c,H],[Ri,H]],[[Ri,H],[Ri,-H]]],36);
+}
+function rollerGeo(){
+  const Ro=DIM.rollerR,Ri=DIM.rollerRi,H=DIM.rollerH,r=.5;
+  const outer=[...arcPts(Ro-r,-H+r,r,-Math.PI/2,0,5),...arcPts(Ro-r,H-r,r,0,Math.PI/2,5)];
+  return revolve([[[Ri,-H],[Ro-r,-H]],outer,[[Ro-r,H],[Ri,H]],[[Ri,H],[Ri-.12,H-.12]],[[Ri-.12,H-.12],[Ri-.12,-H+.12]],[[Ri-.12,-H+.12],[Ri,-H]]],48);
+}
+function plateGeo(holeR){
+  const R=DIM.plateR,w=DIM.plateW,h=P/2;
+  const rc=(h*h+w*w-R*R)/(2*(R-w)), yc=w+rc, al=Math.atan2(yc,-h), ga=Math.atan2(yc,h);
+  const pts=[], n=26, m=12, V=(x,y)=>pts.push(new THREE.Vector2(x,y));
+  for(let i=0;i<=n;i++){const a=-al+2*al*i/n; V(h+R*Math.cos(a),R*Math.sin(a));}
+  for(let i=1;i<m;i++){const a=-ga-(Math.PI-2*ga)*i/m; V(rc*Math.cos(a),yc+rc*Math.sin(a));}
+  for(let i=0;i<=n;i++){const a=Math.PI-al+2*al*i/n; V(-h+R*Math.cos(a),R*Math.sin(a));}
+  for(let i=1;i<m;i++){const a=(Math.PI-ga)-(Math.PI-2*ga)*i/m; V(rc*Math.cos(a),-yc+rc*Math.sin(a));}
+  const sh=new THREE.Shape(pts);
+  for(const sx of [-h,h]){const p=new THREE.Path();p.absarc(sx,0,holeR,0,TAU,true);sh.holes.push(p);}
+  const T=DIM.plateT,bt=.24,bs=.24;
+  const g=new THREE.ExtrudeGeometry(sh,{depth:T-2*bt,bevelEnabled:true,bevelThickness:bt,bevelSize:bs,bevelOffset:-bs,bevelSegments:2,curveSegments:28});
+  g.translate(0,0,-(T-2*bt)/2); return g;
+}
+function clipGeo(){
+  const h=P/2, ro=2.9, ri=1.72, xe=h+2.7, s=new THREE.Shape();
+  s.moveTo(xe,ro); s.lineTo(-h,ro); s.absarc(-h,0,ro,Math.PI/2,Math.PI*1.5,false);
+  s.lineTo(xe,-ro); s.lineTo(xe,-ri); s.lineTo(-h,-ri); s.absarc(-h,0,ri,Math.PI*1.5,Math.PI/2,true); s.lineTo(xe,ri); s.lineTo(xe,ro);
+  return new THREE.ExtrudeGeometry(s,{depth:.42,bevelEnabled:true,bevelThickness:.1,bevelSize:.1,bevelOffset:-.1,bevelSegments:1,curveSegments:20});
+}
+const GEO={inner:plateGeo(DIM.bushRo),outer:plateGeo(DIM.pinR),pin:pinGeo(),bush:bushGeo(),roller:rollerGeo(),clip:clipGeo()};
+GEO.innerF=GEO.inner; GEO.outerF=GEO.outer;
+
+/* ---------- sprockets ---------- */
+function sprocketData(N){
+  const Rp=P/(2*Math.sin(Math.PI/N)), rs=(1.005*2*DIM.rollerR+.076)/2, Ro=P*(.6+1/Math.tan(Math.PI/N))/2;
+  return {N,Rp,rs,Ro};
+}
+function sprocketOutline(sd){
+  const {N,Rp,rs,Ro}=sd, rf=P-rs, pts=[];
+  const S=k=>{const a=k*TAU/N;return [Rp*Math.cos(a),Rp*Math.sin(a)];};
+  const ang=(a,b)=>Math.atan2(b[1]-a[1],b[0]-a[0]);
+  const cc=(c1,r1,r2)=>{ // circle (c1,r1) with circle (origin,r2)
+    const dx=-c1[0],dy=-c1[1],d=Math.hypot(dx,dy),a=(r1*r1-r2*r2+d*d)/(2*d),h=Math.sqrt(Math.max(0,r1*r1-a*a));
+    const mx=c1[0]+a*dx/d,my=c1[1]+a*dy/d; return [[mx-h*dy/d,my+h*dx/d],[mx+h*dy/d,my-h*dx/d]];
+  };
+  const pick=(I,mid)=>{const d=p=>Math.abs(wrapPi(Math.atan2(p[1],p[0])-mid));return d(I[0])<d(I[1])?I[0]:I[1];};
+  const V=(x,y)=>pts.push(new THREE.Vector2(x,y));
+  for(let k=0;k<N;k++){
+    const Sk=S(k),Sn=S(k+1),Sp=S(k-1), mid=(k+.5)*TAU/N;
+    const a0=ang(Sk,Sp); let a1=ang(Sk,Sn); while(a1>a0)a1-=TAU;
+    for(let i=0;i<=14;i++){const a=lerp(a0,a1,i/14);V(Sk[0]+rs*Math.cos(a),Sk[1]+rs*Math.sin(a));}
+    const A=pick(cc(Sn,rf,Ro),mid), B=pick(cc(Sk,rf,Ro),mid);
+    const b0=ang(Sn,Sk); let b1=ang(Sn,A); while(b1<b0)b1+=TAU;
+    for(let i=1;i<=10;i++){const a=lerp(b0,b1,i/10);V(Sn[0]+rf*Math.cos(a),Sn[1]+rf*Math.sin(a));}
+    const t0=Math.atan2(A[1],A[0]); let t1=Math.atan2(B[1],B[0]); while(t1<t0)t1+=TAU;
+    for(let i=1;i<6;i++){const a=lerp(t0,t1,i/6);V(Ro*Math.cos(a),Ro*Math.sin(a));}
+    const c0=ang(Sk,B); let c1=ang(Sk,Sn); while(c1<c0)c1+=TAU;
+    for(let i=0;i<10;i++){const a=lerp(c0,c1,i/10);V(Sk[0]+rf*Math.cos(a),Sk[1]+rf*Math.sin(a));}
+  }
+  return pts;
+}
+function borePath(r){
+  const kw=4.76/2, kd=r+2.3, y0=Math.sqrt(r*r-kw*kw), p=new THREE.Path();
+  const a0=Math.atan2(y0,kw), a1=Math.atan2(y0,-kw);
+  p.moveTo(kw,y0); p.lineTo(kw,kd); p.lineTo(-kw,kd); p.lineTo(-kw,y0); p.absarc(0,0,r,a1,a0+TAU,false);
+  return p;
+}
+function smoothRadial(g,R){
+  const p=g.attributes.position,n=g.attributes.normal;
+  for(let i=0;i<p.count;i++){
+    const x=p.getX(i),y=p.getY(i),r=Math.hypot(x,y);
+    if(Math.abs(n.getZ(i))<.25&&Math.abs(r-R)<.06) n.setXYZ(i,x/r,y/r,0);
+  }
+  n.needsUpdate=true;
+}
+function makeSprocket(sd,o){
+  const grp=new THREE.Group(), mat=metal(COL.steel,.26,.9); grp.userData.mat=mat; grp.userData.sd=sd; grp.userData.o=o;
+  const sh=new THREE.Shape(sprocketOutline(sd)); sh.holes.push(borePath(o.bore));
+  if(o.light) for(let i=0;i<6;i++){const a=i*TAU/6+TAU/12,p=new THREE.Path();p.absarc(o.light.r*Math.cos(a),o.light.r*Math.sin(a),o.light.h,0,TAU,true);sh.holes.push(p);}
+  const T=7.2,bt=.55,bs=.5;
+  const g=new THREE.ExtrudeGeometry(sh,{depth:T-2*bt,bevelEnabled:true,bevelThickness:bt,bevelSize:bs,bevelOffset:-bs,bevelSegments:2,curveSegments:40});
+  g.translate(0,0,-(T-2*bt)/2);
+  grp.add(new THREE.Mesh(g,mat));
+  const hs=new THREE.Shape(); hs.absarc(0,0,o.hubR,0,TAU,false); hs.holes.push(borePath(o.bore));
+  const hg=new THREE.ExtrudeGeometry(hs,{depth:o.hubL,bevelEnabled:true,bevelThickness:.8,bevelSize:.8,bevelOffset:-.8,bevelSegments:2,curveSegments:120});
+  hg.translate(0,0,3.2); smoothRadial(hg,o.hubR);
+  grp.add(new THREE.Mesh(hg,mat));
+  grp.userData.hubFront=3.2+o.hubL+.8;
+  grp.visible=false; scene.add(grp); return grp;
+}
+const SD18=sprocketData(18), SD36=sprocketData(36);
+const sprA=makeSprocket(SD18,{bore:7.94,hubR:19,hubL:12});
+const sprB=makeSprocket(SD36,{bore:9.53,hubR:24,hubL:14,light:{r:47,h:11.5}});
+
+/* ---------- motor (drives the 18-tooth sprocket) ---------- */
+function makeMotor(){
+  const g=new THREE.Group(), sh=new THREE.Group();
+  const paint=(hex,r,m)=>new THREE.MeshStandardMaterial({color:new THREE.Color(hex).convertSRGBToLinear(),roughness:r,metalness:m});
+  const mBody=paint('#56606b',.5,.35), mBell=metal('#aeb4bb',.32,.85), mFan=paint('#2a2e34',.55,.3), mSteel=metal('#cfd4da',.22,.92);
+  const add=(geo,mat,x,y,z,parent)=>{const m=new THREE.Mesh(geo,mat); m.position.set(x||0,y||0,z||0); (parent||g).add(m); return m;};
+  // shaft and key turn with the sprocket; the key sits in the sprocket's keyway (+y in sprocket space)
+  const r=7.8;
+  add(revolve([[[0,-36],[r-.6,-36]],[[r-.6,-36],[r,-35.4]],[[r,-35.4],[r,16.9]],[[r,16.9],[r-.6,17.5]],[[r-.6,17.5],[0,17.5]]],40),mSteel,0,0,0,sh);
+  add(new THREE.BoxGeometry(4.5,4.0,18.5),mSteel,0,8.2,6.75,sh);
+  g.add(sh);
+  // housing, from the front bearing cap back to the fan cover (axis along z, behind the sprocket)
+  add(revolve([[[13,-33],[13,-29.5]],[[13,-29.5],[12.5,-29]],[[12.5,-29],[0,-29]]],40),mBell);
+  add(revolve([[[31,-40],[31,-35]],arcPts(29,-35,2,0,Math.PI/2,5),[[29,-33],[13,-33]]],56),mBell);
+  add(revolve([[[31.5,-118],[33.5,-118]],[[33.5,-118],[33.5,-40]],[[33.5,-40],[31,-40]]],64),mBody);
+  for(let i=0;i<20;i++){
+    const a=i/20*TAU; if(a>Math.PI*1.22&&a<Math.PI*1.78) continue;
+    const fin=add(new THREE.BoxGeometry(2,4.4,76),mBody,Math.cos(a)*35.4,Math.sin(a)*35.4,-79); fin.rotation.z=a-Math.PI/2;
+  }
+  add(revolve([[[0,-141.5],[28,-140]],[[28,-140],[31.5,-136.5]],[[31.5,-136.5],[31.5,-118]]],56),mFan);
+  add(new THREE.BoxGeometry(24,12,28),mBody,0,40,-80);
+  add(new THREE.BoxGeometry(26,9,74),mBody,0,-35,-79);
+  add(new THREE.BoxGeometry(62,6,80),mBody,0,-41.5,-79);
+  g.userData.shaft=sh; g.visible=false; scene.add(g); return g;
+}
+const motor=makeMotor();
+
+/* ---------- chain instancing ---------- */
+const CAP=100, chain=new THREE.Group(); scene.add(chain);
+const IM={}, CNT={};
+for(const k of ['inner','innerF','outer','outerF','pin','bush','roller']){
+  const im=new THREE.InstancedMesh(GEO[k],MAT[k],CAP); im.frustumCulled=false;
+  im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); chain.add(im); IM[k]=im; CNT[k]=0;
+}
+const clip=new THREE.Mesh(GEO.clip,MAT.clip); clip.visible=false; chain.add(clip);
+const _M=new THREE.Matrix4(),_Q=new THREE.Quaternion(),_P=new THREE.Vector3(),_S=new THREE.Vector3(),ZA=new THREE.Vector3(0,0,1);
+function put(k,x,y,z,rot=0,s=1){
+  if(CNT[k]>=CAP)return;
+  _P.set(x,y,z); _Q.setFromAxisAngle(ZA,rot); _S.set(s,s,s); _M.compose(_P,_Q,_S); IM[k].setMatrixAt(CNT[k]++,_M);
+}
+function drawLinks(J,links){
+  for(const L of links){
+    const a=J[L.i], b=J[L.j]; if(!a||!b)continue;
+    const mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2, r=Math.atan2(b[1]-a[1],b[0]-a[0]), dz=L.dz||0, s=L.s==null?1:L.s;
+    if(L.out){ put('outerF',mx,my,DIM.zOut+dz,r,s); put('outer',mx,my,-DIM.zOut+dz,r,s); put('pin',a[0],a[1],dz,0,s); put('pin',b[0],b[1],dz,0,s); }
+    else { put('innerF',mx,my,DIM.zIn+dz,r,s); put('inner',mx,my,-DIM.zIn+dz,r,s);
+      put('bush',a[0],a[1],dz,0,s); put('bush',b[0],b[1],dz,0,s); put('roller',a[0],a[1],dz,0,s); put('roller',b[0],b[1],dz,0,s); }
+  }
+}
+function matReset(){
+  for(const k in MAT){const m=MAT[k]; m.color.copy(m.userData.base); m.emissive.setRGB(0,0,0); m.opacity=1; m.transparent=false; m.depthWrite=true;}
+  for(const s of [sprA,sprB]){const m=s.userData.mat; m.opacity=1; m.transparent=false; m.depthWrite=true; m.emissive.setRGB(0,0,0);}
+}
+function glow(k,a){for(const m of [MAT[k],MAT[k+'F']]) if(m) m.emissive.copy(m.userData.base).multiplyScalar(a);}
+function fadeMat(m,a){m.opacity=a; m.transparent=a<.999; m.depthWrite=a>=.999;}
+function chainAlpha(a){for(const k in MAT)fadeMat(MAT[k],a);}
+
+/* ---------- camera ---------- */
+let W=1280,H=720,SC=1;
+function camAt(t,keys){
+  if(t<=keys[0].t)return keys[0];
+  for(let i=0;i<keys.length-1;i++){const a=keys[i],b=keys[i+1];
+    if(t<=b.t){const f=io(seg(t,a.t,b.t)),o={};for(const k of ['tx','ty','tz','az','el','d'])o[k]=lerp(a[k],b[k],f);return o;}}
+  return keys[keys.length-1];
+}
+function applyCam(c){
+  const ref=16/9, asp=W/H; let d=c.d; if(asp<ref)d*=Math.pow(ref/asp,.92);
+  const az=c.az*DEG, el=c.el*DEG;
+  camera.position.set(c.tx+d*Math.sin(az)*Math.cos(el),c.ty+d*Math.sin(el),c.tz+d*Math.cos(az)*Math.cos(el));
+  camera.lookAt(c.tx,c.ty,c.tz); camera.updateMatrixWorld();
+}
+const K=(t,c)=>Object.assign({t},c);
+const CAM={
+  p0:{tx:5,ty:-3,tz:4,az:-38,el:26,d:176},
+  a2:{tx:0,ty:-2,tz:0,az:-27,el:23,d:100},
+  u1:{tx:28,ty:-2,tz:-4,az:-16,el:38,d:190},
+  c1:{tx:0,ty:-8,tz:0,az:-15,el:36,d:300},
+  c2:{tx:0,ty:-6,tz:0,az:-6,el:9,d:300},
+  k1:{tx:4,ty:-4,tz:5,az:-26,el:17,d:198},
+  m1:{tx:0,ty:-12,tz:0,az:-10,el:10,d:370},
+  m2:{tx:2,ty:20,tz:0,az:-10,el:10,d:168},
+  m3:{tx:0,ty:-6,tz:0,az:-12,el:14,d:250},
+  d1:{tx:38,ty:-6,tz:0,az:-12,el:13,d:560},
+  d2:{tx:30,ty:-2,tz:-20,az:-16,el:14,d:570},
+  d3:{tx:30,ty:-2,tz:-20,az:-26,el:20,d:585},
+};
+
+/* ---------- labels & overlay ---------- */
+// Scenes request labels and lines every frame; they are drawn either into the page
+// (SVG + HTML, on screen) or into a 2D canvas (GIF frames) from the same requests.
+const _v=new THREE.Vector3();
+function proj(p){_v.set(p[0],p[1],p[2]).project(camera); return [(_v.x+1)*W/2,(1-_v.y)*H/2,_v.z];}
+const LBL=new Map(); let lreq=[];
+function label(id,o){ if(o.a>0.002) lreq.push([id,o]); }
+function partHTML(num,name,k,qty,note){ return {num,name,k,qty,note}; }
+const tag=(name,note)=>({name,note});
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function contentHTML(c){
+  if(c.text) return `<b>${esc(c.text)}</b>`;
+  return `<div class="hd">${c.num?`<b class="ball">${c.num}</b>`:''}${c.k?`<i class="sw" style="--c:${COL[c.k]}"></i>`:''}<span>${esc(c.name)}</span>${c.qty?`<span class="qty">&times;${c.qty}</span>`:''}</div>${c.note?`<div class="nt">${esc(c.note)}</div>`:''}`;
+}
+// where a label box goes: beside its anchor, kept inside the frame, with an elbowed leader
+function placeBox(A,o,w,h){
+  const m=8, dx=(o.off?o.off[0]:0)*SC, dy=(o.off?o.off[1]:0)*SC;
+  let x,y,bx,by;
+  if(o.plain){x=A[0]+dx-w/2; y=A[1]+dy-h/2;}
+  else{bx=A[0]+dx; by=A[1]+dy; x=dx>=0?bx:bx-w; y=by-h/2;}
+  const cx=clamp(x,m,Math.max(m,W-w-m)), cy=clamp(y,m,Math.max(m,H-h-m));
+  if(o.plain) return {x:cx,y:cy};
+  bx+=cx-x; by+=cy-y;
+  const sg=dx>=0?1:-1, kx=bx-sg*Math.min(14*SC,Math.abs(bx-A[0])*.5);
+  return {x:cx,y:cy,bx,by,kx};
+}
+function mkLabel(){
+  const el=document.createElement('div'); el.className='lbl'; labelsEl.appendChild(el);
+  const g=document.createElementNS(SVGNS,'g'), p=document.createElementNS(SVGNS,'path'), d=document.createElementNS(SVGNS,'circle');
+  p.setAttribute('class','ld'); d.setAttribute('class','dot'); d.setAttribute('r','2.6'); g.appendChild(p); g.appendChild(d); ov.appendChild(g);
+  return {el,g,p,d,html:'',cls:'',w:0,h:0,s:0,shown:false};
+}
+function flushLabels(){
+  const used=new Set();
+  for(const [id,o] of lreq){
+    let e=LBL.get(id); if(!e){e=mkLabel(); LBL.set(id,e);}
+    if(!e.shown){e.el.style.display='block'; e.shown=true;}
+    const cls='lbl'+(o.plain?' plain':'')+(o.cls?' '+o.cls:''), html=contentHTML(o.c);
+    if(e.html!==html||e.cls!==cls||e.s!==SC){ if(e.html!==html)e.el.innerHTML=html; e.el.className=cls; e.html=html; e.cls=cls; e.s=SC; e.w=e.el.offsetWidth; e.h=e.el.offsetHeight; }
+    const A=proj(o.at); if(A[2]>1){continue;}
+    const b=placeBox(A,o,e.w,e.h);
+    e.el.style.transform=`translate(${b.x.toFixed(1)}px,${b.y.toFixed(1)}px)`;
+    e.el.style.opacity=o.a.toFixed(3);
+    if(!o.plain){
+      e.p.setAttribute('d',`M${A[0].toFixed(1)},${A[1].toFixed(1)}L${b.kx.toFixed(1)},${b.by.toFixed(1)}L${b.bx.toFixed(1)},${b.by.toFixed(1)}`);
+      e.d.setAttribute('cx',A[0].toFixed(1)); e.d.setAttribute('cy',A[1].toFixed(1));
+      e.g.style.display=''; e.g.style.opacity=o.a.toFixed(3);
+    } else e.g.style.display='none';
+    used.add(id);
+  }
+  for(const [id,e] of LBL) if(!used.has(id)&&e.shown){e.el.style.display='none'; e.g.style.display='none'; e.shown=false;}
+  lreq=[];
+}
+const SH=new Map(); let sreq=[];
+function shape(id,pts,o){ if(o.a>0.002&&pts.length>1) sreq.push([id,pts,o]); }
+function mkShape(){
+  const g=document.createElementNS(SVGNS,'g'), p=document.createElementNS(SVGNS,'path'), h1=document.createElementNS(SVGNS,'path'), h2=document.createElementNS(SVGNS,'path');
+  g.appendChild(p); g.appendChild(h1); g.appendChild(h2); ov.insertBefore(g,ov.firstChild); return {g,p,h1,h2,shown:true};
+}
+function headPts(a,b,cls){
+  const ang=Math.atan2(b[1]-a[1],b[0]-a[0]), L=(cls==='arw'?11:8)*SC, w=(cls==='arw'?6:3.6)*SC;
+  const tx=b[0]+Math.cos(ang)*L*.45, ty=b[1]+Math.sin(ang)*L*.45, bx=tx-Math.cos(ang)*L, by=ty-Math.sin(ang)*L;
+  return [[tx,ty],[bx-Math.sin(ang)*w,by+Math.cos(ang)*w],[bx+Math.sin(ang)*w,by-Math.cos(ang)*w]];
+}
+function head(el,a,b,cls){
+  const q=headPts(a,b,cls);
+  el.setAttribute('d',`M${q[0][0].toFixed(1)},${q[0][1].toFixed(1)}L${q[1][0].toFixed(1)},${q[1][1].toFixed(1)}L${q[2][0].toFixed(1)},${q[2][1].toFixed(1)}Z`);
+  el.setAttribute('class',cls+'h'); el.style.display='';
+}
+function flushShapes(){
+  const used=new Set();
+  for(const [id,pts,o] of sreq){
+    let e=SH.get(id); if(!e){e=mkShape(); SH.set(id,e);}
+    const Q=pts.map(proj); if(Q.some(q=>q[2]>1))continue;
+    let d=''; for(let i=0;i<Q.length;i++) d+=(i?'L':'M')+Q[i][0].toFixed(1)+','+Q[i][1].toFixed(1);
+    if(o.closed)d+='Z';
+    const cls=o.cls||'ld'; e.p.setAttribute('d',d); e.p.setAttribute('class',cls);
+    if(o.heads){ head(e.h1,Q[Q.length-2],Q[Q.length-1],cls); if(o.heads===2) head(e.h2,Q[1],Q[0],cls); else e.h2.style.display='none'; }
+    else {e.h1.style.display='none'; e.h2.style.display='none';}
+    e.g.style.display=''; e.g.style.opacity=o.a.toFixed(3); e.shown=true; used.add(id);
+  }
+  for(const [id,e] of SH) if(!used.has(id)&&e.shown){e.g.style.display='none'; e.shown=false;}
+  sreq=[];
+}
+function circ(cx,cy,R,z,a0,a1,n=96){const o=[];for(let i=0;i<=n;i++){const a=lerp(a0,a1,i/n);o.push([cx+R*Math.cos(a),cy+R*Math.sin(a),z]);}return o;}
+
+/* ---------- the same overlay, drawn into a 2D canvas (for GIF frames) ---------- */
+const FD="'Barlow Condensed','Arial Narrow',sans-serif", FB="Barlow,'Helvetica Neue',Arial,sans-serif", FM="'IBM Plex Mono',ui-monospace,Menlo,monospace";
+function themeVars(){
+  const cs=getComputedStyle(stage), g=n=>cs.getPropertyValue(n).trim();
+  return {card:g('--card'),rule:g('--card-rule'),ink:g('--ink'),muted:g('--muted'),leader:g('--leader'),accent:g('--accent'),hi:g('--stage-hi'),lo:g('--stage-lo'),grid:g('--grid')};
+}
+function rrect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function spacing(ctx,px){ if('letterSpacing' in ctx) ctx.letterSpacing=px+'px'; }
+function drawBg(ctx,V,w,h,grid){
+  ctx.save(); ctx.translate(w*.5,h*.32); ctx.scale(1,(h*.95)/(w*1.25));
+  const r=w*1.25, gr=ctx.createRadialGradient(0,0,0,0,0,r); gr.addColorStop(0,V.hi); gr.addColorStop(1,V.lo);
+  ctx.fillStyle=gr; ctx.fillRect(-r*2,-r*2,r*4,r*4); ctx.restore();
+  ctx.fillStyle=V.grid; const gw=Math.max(1,Math.round(SC));
+  for(let x=0;x<w;x+=grid) ctx.fillRect(Math.round(x),0,gw,h);
+  for(let y=0;y<h;y+=grid) ctx.fillRect(0,Math.round(y),w,gw);
+}
+function drawShapes2D(ctx,V){
+  for(const [,pts,o] of sreq){
+    const Q=pts.map(proj); if(Q.some(q=>q[2]>1))continue;
+    const cls=o.cls||'ld', L=Math.max(1,SC);
+    ctx.save(); ctx.globalAlpha=o.a; ctx.lineJoin='round';
+    ctx.strokeStyle=cls==='ld'?V.leader:V.accent; ctx.fillStyle=ctx.strokeStyle;
+    ctx.lineWidth=(cls==='arw'?2.4:cls==='pc'?1.5:1.25)*L; ctx.lineCap=cls==='arw'?'round':'butt';
+    if(cls==='pc') ctx.setLineDash([8*L,5*L]);
+    ctx.beginPath(); Q.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1])); if(o.closed)ctx.closePath(); ctx.stroke();
+    ctx.setLineDash([]);
+    const tri=q=>{ctx.beginPath();ctx.moveTo(q[0][0],q[0][1]);ctx.lineTo(q[1][0],q[1][1]);ctx.lineTo(q[2][0],q[2][1]);ctx.closePath();ctx.fill();};
+    if(o.heads){ tri(headPts(Q[Q.length-2],Q[Q.length-1],cls)); if(o.heads===2) tri(headPts(Q[1],Q[0],cls)); }
+    ctx.restore();
+  }
+}
+function labelMetrics(ctx,c,o,notes){
+  const em=14*SC;
+  if(c.text){ const fs=13*SC, f=`500 ${fs}px ${FM}`; ctx.font=f; const px=.45*fs, py=.3*fs; return {plain:true,f,px,w:ctx.measureText(c.text).width+2*px,h:fs+2*py}; }
+  const hs=em*(o.cls==='key'?1.18:1.08), gap=.45*hs, padX=.62*em, padT=.38*em, padB=.44*em, parts=[]; let hw=0;
+  if(c.num){ const d=1.6*.76*hs; parts.push({t:'ball',w:d}); hw+=d+gap; }
+  if(c.k){ const d=.74*hs; parts.push({t:'sw',w:d}); hw+=d+gap; }
+  ctx.font=`600 ${hs}px ${FB}`; const nw=ctx.measureText(c.name).width; parts.push({t:'name',w:nw}); hw+=nw;
+  if(c.qty){ ctx.font=`500 ${.78*hs}px ${FM}`; const q='×'+c.qty, qw=ctx.measureText(q).width; parts.push({t:'qty',w:qw,q,g:gap+.1*hs}); hw+=gap+.1*hs+qw; }
+  const headH=1.15*hs, ns=.86*em, showNote=!!(c.note&&notes);
+  let nwid=0; if(showNote){ ctx.font=`400 ${ns}px ${FB}`; nwid=ctx.measureText(c.note).width; }
+  return {hs,gap,padX,padT,headH,ns,parts,showNote,w:2*padX+Math.max(hw,nwid),h:padT+headH+(showNote?.18*em+1.3*ns:0)+padB};
+}
+function drawLabels2D(ctx,V,notes,avoid){
+  for(const [,o] of lreq){
+    const A=proj(o.at); if(A[2]>1)continue;
+    const c=o.c, m=labelMetrics(ctx,c,o,notes), b=placeBox(A,{off:o.off,plain:!!c.text},m.w,m.h);
+    const hit=r=>r&&b.x<r.x+r.w+6&&b.x+m.w>r.x-6&&b.y<r.y+r.h+6&&b.y+m.h>r.y-6;
+    const moveTo=ny=>{ if(b.by!==undefined) b.by+=ny-b.y; b.y=ny; };
+    if(avoid&&hit(avoid.cap)) moveTo(Math.max(8,avoid.cap.y-6-m.h));
+    if(avoid&&hit(avoid.hud)) moveTo(avoid.hud.y+avoid.hud.h+8);
+    ctx.save(); ctx.globalAlpha=o.a; ctx.textBaseline='middle';
+    if(m.plain){
+      rrect(ctx,b.x,b.y,m.w,m.h,3*SC); ctx.fillStyle=V.card; ctx.fill();
+      ctx.font=m.f; ctx.fillStyle=V.accent; ctx.fillText(c.text,b.x+m.px,b.y+m.h/2+.5); ctx.restore(); continue;
+    }
+    const L=Math.max(1,SC);
+    ctx.strokeStyle=V.leader; ctx.lineWidth=1.15*L; ctx.beginPath(); ctx.moveTo(A[0],A[1]); ctx.lineTo(b.kx,b.by); ctx.lineTo(b.bx,b.by); ctx.stroke();
+    ctx.fillStyle=V.leader; ctx.beginPath(); ctx.arc(A[0],A[1],2.6*L,0,TAU); ctx.fill();
+    ctx.shadowColor='rgba(0,0,0,.2)'; ctx.shadowBlur=12*SC; ctx.shadowOffsetY=4*SC;
+    rrect(ctx,b.x,b.y,m.w,m.h,4*SC); ctx.fillStyle=V.card; ctx.fill();
+    ctx.shadowColor='rgba(0,0,0,0)'; ctx.lineWidth=L; ctx.strokeStyle=V.rule; ctx.stroke();
+    let x=b.x+m.padX; const cy=b.y+m.padT+m.headH/2;
+    for(const p of m.parts){
+      if(p.t==='ball'){
+        ctx.beginPath(); ctx.arc(x+p.w/2,cy,p.w/2-.75*L,0,TAU); ctx.lineWidth=1.5*L; ctx.strokeStyle=V.ink; ctx.stroke();
+        ctx.font=`500 ${.76*m.hs}px ${FM}`; ctx.fillStyle=V.ink; ctx.textAlign='center'; ctx.fillText(String(c.num),x+p.w/2,cy+.5); ctx.textAlign='left';
+        x+=p.w+m.gap;
+      } else if(p.t==='sw'){ rrect(ctx,x,cy-p.w/2,p.w,p.w,2); ctx.fillStyle=COL[c.k]; ctx.fill(); x+=p.w+m.gap; }
+      else if(p.t==='name'){ ctx.font=`600 ${m.hs}px ${FB}`; ctx.fillStyle=V.ink; ctx.fillText(c.name,x,cy+.5); x+=p.w; }
+      else { x+=p.g; ctx.font=`500 ${.78*m.hs}px ${FM}`; ctx.fillStyle=V.muted; ctx.fillText(p.q,x,cy+.5); x+=p.w; }
+    }
+    if(m.showNote){ ctx.font=`400 ${m.ns}px ${FB}`; ctx.fillStyle=V.muted; ctx.fillText(c.note,b.x+m.padX,b.y+m.padT+m.headH+.18*14*SC+.65*m.ns); }
+    ctx.restore();
+  }
+}
+function wrapText(ctx,text,maxW){
+  const words=text.split(' '), lines=[]; let line='';
+  for(const w of words){ const t=line?line+' '+w:w; if(ctx.measureText(t).width>maxW&&line){lines.push(line); line=w;} else line=t; }
+  if(line)lines.push(line); return lines;
+}
+function captionBox(ctx,w,h,cap){
+  if(!cap) return null;
+  const fs=16*SC; ctx.font=`500 ${fs}px ${FB}`;
+  const padX=.8*fs, padT=.5*fs, padB=.55*fs, lh=1.38*fs, maxW=Math.min(w*.64,42*fs)-2*padX;
+  const lines=wrapText(ctx,cap,maxW), bw=Math.max(...lines.map(l=>ctx.measureText(l).width))+2*padX, bh=padT+lines.length*lh+padB;
+  return {x:18*SC,y:h-14*SC-bh,w:bw,h:bh,lines,fs,padX,padT,lh};
+}
+// chapter heading for GIF frames; it shrinks on small GIFs so it leaves room for the labels
+function hudBox(ctx,w,ci,step){
+  const k=Math.min(SC,w/1100+.15), x=18*k, y=14*k, title=SCENES[ci].title.toUpperCase();
+  ctx.font=`700 ${32*k}px ${FD}`; spacing(ctx,.012*32*k); const tw=ctx.measureText(title).width;
+  ctx.font=`500 ${12.5*k}px ${FM}`; spacing(ctx,0); const sw=step?ctx.measureText(step).width:0;
+  const hh=11.5*k+.16*32*k+32*k+(step?.55*12.5*k+12.5*k:0);
+  return {k,x,y,w:Math.max(tw,sw,160*k),h:hh,title,step,ci};
+}
+function drawText2D(ctx,V,hb,cb){
+  ctx.save(); ctx.textBaseline='top';
+  if(hb){
+    const k=hb.k, x0=hb.x; let y=hb.y;
+    ctx.font=`500 ${11.5*k}px ${FM}`; spacing(ctx,.09*11.5*k); ctx.fillStyle=V.muted;
+    ctx.fillText(`CHAPTER ${hb.ci+1} OF ${SCENES.length}`,x0,y); y+=11.5*k+.16*32*k;
+    ctx.font=`700 ${32*k}px ${FD}`; spacing(ctx,.012*32*k); ctx.fillStyle=V.ink;
+    ctx.fillText(hb.title,x0,y); y+=32*k+.55*12.5*k;
+    if(hb.step){ ctx.font=`500 ${12.5*k}px ${FM}`; spacing(ctx,0); ctx.fillStyle=V.accent; ctx.fillText(hb.step,x0,y); }
+    spacing(ctx,0);
+  }
+  if(cb){
+    ctx.font=`500 ${cb.fs}px ${FB}`;
+    rrect(ctx,cb.x,cb.y,cb.w,cb.h,4*SC); ctx.fillStyle=V.card; ctx.fill(); ctx.lineWidth=Math.max(1,SC); ctx.strokeStyle=V.rule; ctx.stroke();
+    ctx.fillStyle=V.ink; ctx.textBaseline='middle';
+    cb.lines.forEach((l,i)=>ctx.fillText(l,cb.x+cb.padX,cb.y+cb.padT+cb.lh*(i+.5)));
+  }
+  ctx.restore();
+}
+
+/* ---------- HUD, caption, panels ---------- */
+let capReq='', capCur=null, stepReq='', infoReq=null, infoCur='', bomReq=null;
+const capEl=$('caption'), cap2=$('caption2'), infoEl=$('info'), bomEl=$('bom');
+const bomLis=[...bomEl.querySelectorAll('li')];
+let bomCur=null;
+function flushHUD(ci){
+  if(capReq!==capCur){ capCur=capReq; capEl.textContent=capReq; cap2.textContent=capReq; capEl.classList.remove('in'); void capEl.offsetWidth; if(capReq)capEl.classList.add('in'); }
+  const eb=`Chapter ${ci+1} of ${SCENES.length}`; if($('eb').textContent!==eb)$('eb').textContent=eb;
+  if($('tt').textContent!==SCENES[ci].title)$('tt').textContent=SCENES[ci].title;
+  if($('st').textContent!==stepReq)$('st').textContent=stepReq;
+  const ih=infoReq?`<h3><span>${infoReq.title}</span></h3>`+infoReq.rows.map(r=>`<div class="row"><span>${r[0]}</span><b>${r[1]}</b></div>`).join(''):'';
+  if(ih!==infoCur){ if(ih) infoEl.innerHTML=ih; infoCur=ih; }
+  infoEl.classList.toggle('off',!infoReq);
+  const bk=bomReq?JSON.stringify(bomReq):'';
+  if(bk!==bomCur){
+    bomCur=bk; bomEl.classList.toggle('off',!bomReq);
+    if(bomReq) bomLis.forEach(li=>{const k=li.dataset.k; li.classList.toggle('on',bomReq.on.includes(k)); li.classList.toggle('act',bomReq.act===k); li.classList.toggle('done',bomReq.done.includes(k));});
+  }
+  capReq=''; stepReq=''; infoReq=null; bomReq=null;
+}
+
+/* =====================================================================
+   SCENES — every frame is a pure function of time, so scrubbing works.
+   Pacing: a caption appears first, then the motion; each pop-up label
+   arrives once things have settled and stays up while nothing moves fast.
+   ===================================================================== */
+const C1={b0:1.6,bd:1.9,dur:12.4};
+const C2={intro:1.5,step:4.4,lead:.45,mv:1.25,lab:1.4};
+C2.end=C2.intro+6*C2.step; C2.zoom=[C2.end+.15,C2.end+1.65]; C2.sub=C2.end+1.8; C2.dur=C2.sub+3.4;
+const C3T={camIn:2.0,b1:3.2,s1:[3.6,5.4],l1:5.2,b2:8.4,p2:[8.9,10.3],l2:10.1,b3:13.3,f3:[13.8,15.0],l3:14.8,
+  b4:17.8,camOut:[17.8,19.6],u0:19.8,stag:.75,b5:25.0,pitch:[25.4,29.8],camFlex:[30.0,31.4],b6:31.4,hinge:[31.6,34.4],
+  flex:[34.6,35.4,38.0,38.8],dur:39.2};
+const C4T={arrive:[.35,1.95],b2:3.0,lab:[3.2,5.1,7.0,8.9,10.8],pc:[7.0,7.8],out:13.4,dur:13.6};
+const C5T={camIn:1.4,drop:[.5,2.9],wrap0:3.0,dl:.1,wd:.5,wrapEnd:5.6,camClose:[5.8,7.2],cut:[7.2,7.8],lab:[8.0,12.2],
+  camBack:[12.4,14.0],b3:14.0,pc:[14.2,21.6],run:[16.0,21.6],uncut:[21.8,22.3],dur:22.6};
+const S6T={fade:[0,.6],moveA:[.7,2.5],rollB:[1.0,3.3],lab1:3.5,
+  b2:5.8,drop:[6.3,8.4],b3:8.7,wrap:[9.2,13.0],
+  side:[13.2,14.7],b4:14.8,pinZ:[15.3,17.0],lab4:16.9,
+  b5:19.9,sideZ:[20.4,21.7],lab5:21.6,
+  front:[24.6,25.9],b6:26.0,clipX:[26.5,28.5],snap:[28.5,28.75],lab6:28.6,
+  motorCam:[31.6,33.1],b7:33.1,motorZ:[33.6,35.8],lab7:35.6,
+  wide:[38.8,40.3],b8:40.3,run:41.0,b9:46.0};
+const S6RUN=10;
+const SCENES=[
+  {title:'Taken apart',dur:C1.dur},
+  {title:'Assembly',dur:C2.dur},
+  {title:'The chain',dur:C3T.dur},
+  {title:'The sprocket',dur:C4T.dur},
+  {title:'Chain on sprocket',dur:C5T.dur},
+  {title:'Two sprockets, one chain',dur:S6T.run+S6RUN},
+];
+{let a=0; for(const s of SCENES){s.start=a; a+=s.dur;}}
+const TOTAL=SCENES.reduce((a,s)=>a+s.dur,0);
+
+/* --- the three-link set used in chapters 1–2: inner link, outer link, inner link --- */
+const SJ=[-1.5*P,-.5*P,.5*P,1.5*P], cA=-P, cB=P;
+const LAY={outerB:[-50,-DIM.zOut],pin:[-32,0],innerB:[-16,-DIM.zIn],bush:[14,0],roller:[30,0],innerF:[44,DIM.zIn],outerF:[58,DIM.zOut]};
+const LAYK=Object.keys(LAY);
+function drawSet(EX){
+  const z={}; for(const k of LAYK) z[k]=lerp(LAY[k][1],LAY[k][0],EX[k]);
+  put('inner',cA,0,z.innerB); put('inner',cB,0,z.innerB); put('innerF',cA,0,z.innerF); put('innerF',cB,0,z.innerF);
+  for(const x of SJ){ put('bush',x,0,z.bush); put('roller',x,0,z.roller); }
+  put('pin',SJ[1],0,z.pin); put('pin',SJ[2],0,z.pin);
+  put('outer',0,0,z.outerB); put('outerF',0,0,z.outerF);
+  return z;
+}
+const ALLEX=()=>({outerB:1,pin:1,innerB:1,bush:1,roller:1,innerF:1,outerF:1});
+const PARTS=[
+  {k:'inner',name:'Inner plate',qty:4},
+  {k:'bush',name:'Bushing',qty:4},
+  {k:'roller',name:'Roller',qty:4},
+  {k:'pin',name:'Pin',qty:2},
+  {k:'outer',name:'Outer plate',qty:2},
+];
+const BOMK=PARTS.map(p=>p.k);
+
+/* 1 — Taken apart: a still exploded view, one kind of part named at a time */
+function sParts(t){
+  applyCam(CAM.p0);
+  const z=drawSet(ALLEX());
+  const anchors={
+    inner:{at:[cB,6.1,z.innerB],off:[44,-86]},
+    bush:{at:[SJ[3],2.78,z.bush],off:[92,-44]},
+    roller:{at:[SJ[0],-3.96,z.roller],off:[-88,58]},
+    pin:{at:[SJ[2],1.98,z.pin+7.2],off:[-46,-78]},
+    outer:{at:[4,-6.1,z.outerF],off:[52,58]},
+  };
+  const on=[]; let act=null;
+  PARTS.forEach((p,i)=>{
+    const tin=C1.b0+i*C1.bd, a=seg(t,tin,tin+.4)*(1-seg(t,C1.dur-.45,C1.dur-.05));
+    if(t>=tin){on.push(p.k); if(t<tin+C1.bd)act=p.k;}
+    label('b'+p.k,{at:anchors[p.k].at,off:anchors[p.k].off,a,c:partHTML(i+1,p.name,p.k,p.qty)});
+    const q=t-tin; if(q>0&&q<1.4) glow(p.k,.5*Math.sin(Math.PI*q/1.4));
+  });
+  bomReq={on,act,done:[]};
+  stepReq=t<C1.b0?'Exploded view':'Parts list';
+  capReq='A roller chain is built from just five kinds of parts. Here are the parts for three links.';
+}
+
+/* 2 — Assembly: caption, then the move, then the name while everything is still */
+const STEPS=[
+  {L:['innerB'],k:'inner',name:'Inner plate',note:'Holes sized for the bushings',cap:'Start with two inner plates. Their holes are sized for the bushings.'},
+  {L:['bush'],k:'bush',name:'Bushing',note:'Pressed into the inner plate',cap:'A bushing is pressed into each hole, so it cannot turn.'},
+  {L:['roller'],k:'roller',name:'Roller',note:'Spins freely on the bushing',cap:'A roller slides over each bushing. It spins freely.'},
+  {L:['innerF'],k:'inner',name:'Inner plate',note:'Closes the roller link',cap:'Two more inner plates lock the rollers in. That makes an inner link.'},
+  {L:['pin'],k:'pin',name:'Pin',note:'Turns inside the bushing',cap:'A pin goes through each bushing. It can turn there, like a hinge.'},
+  {L:['outerB','outerF'],k:'outer',name:'Outer plate',note:'Pressed onto the pin ends',cap:'Outer plates are pressed onto the pin ends, joining the two inner links.'},
+];
+function stepAnchor(i,z){
+  switch(i){
+    case 0: return {at:[cB,6.1,z.innerB],off:[70,-64]};
+    case 1: return {at:[SJ[3],2.78,z.bush+3],off:[86,-52]};
+    case 2: return {at:[SJ[3],3.96,z.roller],off:[90,-42]};
+    case 3: return {at:[cB+3,6.1,z.innerF],off:[78,-56]};
+    case 4: return {at:[SJ[2],1.98,z.pin+6.8],off:[84,-66]};
+    default: return {at:[3,-6.1,z.outerF],off:[66,62]};
+  }
+}
+function sAssembly(t){
+  applyCam(camAt(t,[K(0,CAM.p0),K(C2.zoom[0],CAM.p0),K(C2.zoom[1],CAM.a2)]));
+  const EX=ALLEX(), st=i=>C2.intro+i*C2.step;
+  STEPS.forEach((s,i)=>{const f=io(seg(t,st(i)+C2.lead,st(i)+C2.lead+C2.mv)); for(const l of s.L)EX[l]=1-f;});
+  const z=drawSet(EX);
+  const i=clamp(Math.floor((t-C2.intro)/C2.step),0,STEPS.length-1), s=STEPS[i], ts=st(i);
+  const tEnd=i===STEPS.length-1?C2.zoom[0]:ts+C2.step;
+  const an=stepAnchor(i,z);
+  label('step'+i,{at:an.at,off:an.off,a:t<C2.intro?0:win(t,ts+C2.lab,tEnd-.05,.35),cls:'key',c:partHTML(BOMK.indexOf(s.k)+1,s.name,s.k,0,s.note)});
+  const q=t-ts-C2.lead; if(t>=C2.intro&&t<C2.end&&q>0&&q<1.6) glow(s.k,.42*Math.sin(Math.PI*q/1.6));
+  const endF=1-seg(t,C2.dur-.45,C2.dur-.05);
+  label('ilink',{at:[cA-2,-6.1,DIM.zIn],off:[-66,58],a:seg(t,C2.sub,C2.sub+.4)*endF,c:tag('Inner link','also called a roller link')});
+  label('olink',{at:[-1,6.1,DIM.zOut],off:[34,-80],a:seg(t,C2.sub+.3,C2.sub+.7)*endF,c:tag('Outer link','also called a pin link')});
+  // a part type is ticked once every piece of it is in place (inner plates take two steps)
+  const done=[]; STEPS.forEach((stp,j)=>{ if(t>=st(j)+C2.lead+C2.mv && j!==0 && !done.includes(stp.k)) done.push(stp.k); });
+  bomReq={on:BOMK,act:(t>=C2.intro&&t<C2.end)?s.k:null,done};
+  stepReq=t<C2.intro?'':t<C2.end?`Step ${i+1} of ${STEPS.length} · ${s.name}`:'Three links';
+  capReq=t<C2.intro?'Now the parts go together, one kind at a time.':t<C2.end?s.cap:'Three links: two inner links joined by one outer link.';
+}
+
+/* 3 — The chain: the three-link set grows the way roller chain is really built.
+   Each new pair: an inner link slides into line, an outer plate carrying two pins comes in
+   from behind so the pins pass through both neighbouring bushings, then a second outer plate
+   is pressed onto the pin ends from the front. */
+const C3={kMin:-6,kMax:8};
+function chainJoints(t){
+  const F=C3T.flex, A=17*DEG*sm(seg(t,F[0],F[1]))*(1-sm(seg(t,F[2],F[3])));
+  const phi=j=>A*Math.sin(TAU*j/7.5-2.5*(t-F[0]));
+  const J={}; J[1]=[-P/2,0]; J[2]=[P/2,0];
+  let ang=0,cur=J[2];
+  for(let j=2;j<=C3.kMax;j++){ang+=phi(j); const n=[cur[0]+P*Math.cos(ang),cur[1]+P*Math.sin(ang)]; J[j+1]=n; cur=n;}
+  ang=0; cur=J[1];
+  for(let j=1;j>C3.kMin;j--){ang-=phi(j); const n=[cur[0]-P*Math.cos(ang),cur[1]-P*Math.sin(ang)]; J[j-1]=n; cur=n;}
+  return J;
+}
+// link k joins joints k and k+1; even k = inner link, odd k = outer link
+const UNITS=[
+  {side:1,inK:4,outK:3,slow:true},
+  {side:-1,inK:-2,outK:-1,t0:C3T.u0},
+  {side:1,inK:6,outK:5,t0:C3T.u0+C3T.stag},
+  {side:-1,inK:-4,outK:-3,t0:C3T.u0+2*C3T.stag},
+  {side:1,inK:8,outK:7,t0:C3T.u0+3*C3T.stag},
+  {side:-1,inK:-6,outK:-5,t0:C3T.u0+4*C3T.stag},
+];
+const KIT={zb:-40,zf:30};   // where the two outer plates wait: behind and in front of the chain
+function unitPhase(u,t){
+  return u.slow
+    ? {s:seg(t,C3T.s1[0],C3T.s1[1]),p:seg(t,C3T.p2[0],C3T.p2[1]),f:seg(t,C3T.f3[0],C3T.f3[1]),off:190}
+    : {s:seg(t,u.t0,u.t0+.8),p:seg(t,u.t0+.85,u.t0+1.4),f:seg(t,u.t0+1.45,u.t0+2.0),off:230};
+}
+function drawUnit(J,u,t){
+  const ph=unitPhase(u,t); ph.dx=0; ph.zb=KIT.zb; ph.zf=KIT.zf;
+  if(ph.s<=0) return ph;
+  // all three pieces travel in together from off screen, lined up with their final places
+  const dx=u.side*(1-eo(ph.s))*ph.off;
+  const a=J[u.inK], b=J[u.inK+1], ri=Math.atan2(b[1]-a[1],b[0]-a[0]), mx=(a[0]+b[0])/2+dx, my=(a[1]+b[1])/2;
+  put('innerF',mx,my,DIM.zIn,ri); put('inner',mx,my,-DIM.zIn,ri);
+  for(const q of [a,b]){ put('bush',q[0]+dx,q[1],0); put('roller',q[0]+dx,q[1],0); }
+  const c=J[u.outK], d=J[u.outK+1], ro=Math.atan2(d[1]-c[1],d[0]-c[0]), ox=(c[0]+d[0])/2+dx, oy=(c[1]+d[1])/2;
+  const zb=KIT.zb*(1-io(ph.p)), zf=KIT.zf*(1-io(ph.f));
+  put('outer',ox,oy,-DIM.zOut+zb,ro); put('pin',c[0]+dx,c[1],zb); put('pin',d[0]+dx,d[1],zb);
+  put('outerF',ox,oy,DIM.zOut+zf,ro);
+  Object.assign(ph,{dx,zb,zf}); return ph;
+}
+function sChain(t){
+  applyCam(camAt(t,[K(0,CAM.a2),K(C3T.camIn,CAM.u1),K(C3T.camOut[0],CAM.u1),K(C3T.camOut[1],CAM.c1),K(C3T.camFlex[0],CAM.c1),K(C3T.camFlex[1],CAM.c2)]));
+  const J=chainJoints(t);
+  drawLinks(J,[0,1,2].map(k=>({i:k,j:k+1,out:k===1})));
+  let joined=0;
+  const ph=UNITS.map(u=>{const q=drawUnit(J,u,t); if(q.f>=1)joined++; return q;});
+  // the first pair goes on slowly, with names
+  const u=UNITS[0], q=ph[0], xr=J[u.inK+1][0]+q.dx, xo=J[u.outK+1][0]+q.dx;
+  label('k1',{at:[xr+5.4,1.5,DIM.zIn+.8],off:[84,8],a:win(t,C3T.l1,C3T.b2-.1),c:tag('New inner link','slides into line with the chain')});
+  label('k2',{at:[xo+3.4,4,-DIM.zOut+q.zb],off:[84,-28],a:win(t,C3T.l2,C3T.b3-.1),c:tag('Outer plate with two pins','pins pass through both bushings')});
+  label('k3',{at:[xo+3.4,-4,DIM.zOut+q.zf+.8],off:[84,30],a:win(t,C3T.l3,C3T.b4-.1),c:tag('Second outer plate','pressed onto the pin ends')});
+  // pitch dimension on the centre outer link
+  const ad=win(t,C3T.pitch[0],C3T.pitch[1],.35), zf=DIM.zOut+.8, x1=J[1][0], x2=J[2][0];
+  shape('pe1',[[x1,4.5,zf],[x1,16.5,zf]],{cls:'dim',a:ad});
+  shape('pe2',[[x2,4.5,zf],[x2,16.5,zf]],{cls:'dim',a:ad});
+  shape('pd',[[x1,14,zf],[x2,14,zf]],{cls:'dim',a:ad,heads:2});
+  label('pt',{plain:true,at:[0,14,zf],off:[0,-18],a:ad,c:{text:'Pitch 12.7 mm (½ in)'}});
+  label('lo',{at:[-1,-6.1,DIM.zOut+.8],off:[44,60],a:win(t,C3T.pitch[0]+.3,C3T.pitch[1]),c:tag('Outer link')});
+  label('li',{at:[(J[-2][0]+J[-1][0])/2,-6.1,DIM.zIn+.8],off:[-50,60],a:win(t,C3T.pitch[0]+.5,C3T.pitch[1]),c:tag('Inner link')});
+  label('hinge',{at:[J[4][0],J[4][1]+2,DIM.zOut+1],off:[40,-70],a:win(t,C3T.hinge[0],C3T.hinge[1]),c:tag('Every joint is a hinge','pin turning in its bushing')});
+  infoReq={title:'Roller chain',rows:[['Links',String(3+2*joined)],['Pitch','12.7 mm'],['Roller Ø','7.92 mm'],['Inner width','7.85 mm']]};
+  stepReq=t<C3T.b1?'Adding links':t<C3T.b2?'Adding links · 1 of 3 · line up':t<C3T.b3?'Adding links · 2 of 3 · insert the pins'
+         :t<C3T.b4?'Adding links · 3 of 3 · press on the plate':t<C3T.b5?'Adding links to both ends':t<C3T.b6?'15 links, inner and outer alternating':'Flexing';
+  capReq=t<C3T.b1?'Longer chain is built the same way, one pair of links at a time.'
+        :t<C3T.b2?'A new inner link is lined up with the end of the chain.'
+        :t<C3T.b3?'An outer plate with two pins comes in from behind. The pins go through both bushings.'
+        :t<C3T.b4?'A second outer plate is pressed onto the pin ends. The new link is now joined on.'
+        :t<C3T.b5?'The same three moves repeat at both ends until the chain is long enough.'
+        :t<C3T.b6?'Inner and outer links alternate. Pitch is the distance from one pin center to the next.'
+        :'Each joint pivots, so the chain bends freely in its own plane but stays stiff sideways.';
+}
+
+/* 4 — The sprocket */
+const TH_A0=10*DEG; // a tooth gap sits at the top
+function sSprocket(t){
+  applyCam(camAt(t,[K(0,CAM.c2),K(1.8,CAM.k1)]));
+  if(t<.85){
+    const J=chainJoints(0), links=[];
+    for(let k=C3.kMin;k<=C3.kMax;k++) links.push({i:k,j:k+1,out:(k&1)!==0});
+    drawLinks(J,links);
+    const f=ei(seg(t,0,.85)); chain.position.set(-f*300,-f*40,0); chainAlpha(1-seg(t,.2,.85));
+  } else chain.visible=false;
+  const f=eo(seg(t,C4T.arrive[0],C4T.arrive[1])), x=lerp(200,0,f);
+  sprA.visible=t>C4T.arrive[0]; sprA.position.set(x,0,0); sprA.rotation.set(0,0,TH_A0-x/SD18.Ro);
+  fadeMat(sprA.userData.mat,seg(t,C4T.arrive[0],C4T.arrive[0]+.45));
+  const sd=SD18, zf=3.65, hf=sprA.userData.hubFront, out=C4T.out, L=C4T.lab;
+  const pol=(r,a,z)=>[x+r*Math.cos(a*DEG),r*Math.sin(a*DEG),z];
+  label('tooth',{at:pol(sd.Ro-.6,40,zf),off:[70,-46],a:win(t,L[0],out),c:tag('Tooth','18 around the rim')});
+  label('gap',{at:pol(sd.Rp-sd.rs+.4,-10,zf),off:[82,10],a:win(t,L[1],out),c:tag('Tooth gap','the seat for one roller')});
+  shape('pc',circ(x,0,sd.Rp,zf+.2,100*DEG,100*DEG+TAU*eo(seg(t,C4T.pc[0],C4T.pc[1]))),{cls:'pc',a:win(t,C4T.pc[0],out)});
+  label('pcl',{at:pol(sd.Rp,212,zf+.2),off:[-74,44],a:win(t,L[2]+.4,out),c:tag('Pitch circle','Ø 73.14 mm, through the roller centers')});
+  label('hub',{at:[x-12,15,hf],off:[-92,-52],a:win(t,L[3],out),c:tag('Hub','clamps to the shaft')});
+  label('bore',{at:[x-1.8,9.2,hf],off:[96,-74],a:win(t,L[4],out),c:tag('Bore and keyway','a key locks it to the shaft')});
+  infoReq={title:'Sprocket',rows:[['Teeth','18'],['Chain','#40, 12.7 mm'],['Pitch Ø','73.14 mm'],['Outside Ø',(2*sd.Ro).toFixed(1)+' mm']]};
+  stepReq=t<C4T.b2?'':'Parts of a sprocket';
+  capReq=t<C4T.b2?'A sprocket is a wheel whose teeth fit the chain.':'Each gap between teeth cradles one roller. The pitch circle runs through the roller centers.';
+}
+
+/* 5 — Chain on sprocket */
+const S5={M:41,c:20};
+(function(){
+  const sd=SD18, Lh=44*P, uL=Lh/P, uA=sd.N/2;
+  S5.pt=u=>{ if(u<uL)return [-sd.Rp,-Lh+u*P]; if(u<=uL+uA){const a=Math.PI-(u-uL)*TAU/sd.N; return [sd.Rp*Math.cos(a),sd.Rp*Math.sin(a)];} return [sd.Rp,-(u-uL-uA)*P]; };
+  S5.uc=uL+uA/2;
+  const fin=[]; for(let i=0;i<S5.M;i++)fin.push(S5.pt(S5.uc+i-S5.c));
+  S5.D=makeDrape(fin,S5.c);
+})();
+function makeDrape(fin,c){
+  const M=fin.length,len=[],dir=[],turn=[0];
+  for(let i=0;i<M-1;i++){const a=fin[i],b=fin[i+1]; len.push(Math.hypot(b[0]-a[0],b[1]-a[1])); dir.push(Math.atan2(b[1]-a[1],b[0]-a[0]));}
+  for(let i=1;i<M-1;i++) turn.push(wrapPi(dir[i]-dir[i-1]));
+  return {M,c,len,dir,turn,fin};
+}
+// a strand bent part-way from straight (w=0) to its final shape (w=1), built outward from joint c,
+// so every link keeps its exact length the whole time
+function drape(D,anchor,w,base){
+  const {M,c,len,dir,turn}=D, J=new Array(M); J[c]=anchor;
+  const wc=w(c), d0=base+wrapPi(dir[c]-base)*wc; let d=d0;
+  for(let i=c;i<M-1;i++){ if(i>c)d+=turn[i]*w(i); J[i+1]=[J[i][0]+len[i]*Math.cos(d),J[i][1]+len[i]*Math.sin(d)]; }
+  let e=d0-turn[c]*wc;
+  for(let i=c;i>0;i--){ if(i<c)e-=turn[i]*w(i); J[i-1]=[J[i][0]-len[i-1]*Math.cos(e),J[i][1]-len[i-1]*Math.sin(e)]; }
+  return J;
+}
+const S5TEETH=6;
+function s5state(t){
+  const u0=S5TEETH*io(seg(t,C5T.run[0],C5T.run[1]));
+  let J;
+  if(t<C5T.wrapEnd){
+    const ay=lerp(SD18.Rp+95,SD18.Rp,eo(seg(t,C5T.drop[0],C5T.drop[1])));
+    J=drape(S5.D,[0,ay],i=>{const dl=Math.abs(i-S5.c)*C5T.dl; return sm(seg(t,C5T.wrap0+dl,C5T.wrap0+dl+C5T.wd));},0);
+  } else { J=[]; for(let i=0;i<S5.M;i++)J.push(S5.pt(S5.uc+i-S5.c+u0)); }
+  return {J,u0,th:TH_A0-u0*TAU/SD18.N};
+}
+function strandLinks(M){const L=[];for(let i=0;i<M-1;i++)L.push({i,j:i+1,out:(i&1)===1});return L;}
+function sMesh(t){
+  applyCam(camAt(t,[K(0,CAM.k1),K(C5T.camIn,CAM.m1),K(C5T.camClose[0],CAM.m1),K(C5T.camClose[1],CAM.m2),K(C5T.camBack[0],CAM.m2),K(C5T.camBack[1],CAM.m3)]));
+  sprA.visible=true; sprA.position.set(0,0,0);
+  const st=s5state(t); sprA.rotation.set(0,0,st.th);
+  drawLinks(st.J,strandLinks(S5.M));
+  const ca=seg(t,.3,.8); chainAlpha(ca);
+  const cut=1-seg(t,C5T.cut[0],C5T.cut[1])+seg(t,C5T.uncut[0],C5T.uncut[1]);
+  fadeMat(MAT.innerF,ca*cut); fadeMat(MAT.outerF,ca*cut);
+  IM.innerF.visible=IM.outerF.visible=cut>.01;
+  const sd=SD18, zf=DIM.zOut+1;
+  const J1=st.J[S5.c+1];
+  label('seat',{at:[J1[0]+.6,J1[1]+DIM.rollerR-.3,DIM.rollerH-.2],off:[78,-62],a:win(t,C5T.lab[0],C5T.lab[1]),cls:'key',c:tag('Roller seated in a tooth gap','each tooth fits between two rollers')});
+  label('cut',{at:[J1[0]-P*.5,J1[1]+7,DIM.zIn],off:[-90,-74],a:win(t,C5T.lab[0]+.3,C5T.lab[1]),c:tag('Front plates hidden','to show the rollers')});
+  shape('pc5',circ(0,0,sd.Rp,zf,0,TAU),{cls:'pc',a:win(t,C5T.pc[0],C5T.pc[1])});
+  label('pc5l',{at:[sd.Rp*Math.cos(-28*DEG),sd.Rp*Math.sin(-28*DEG),zf],off:[70,28],a:win(t,C5T.pc[0]+.3,C5T.pc[1]),c:tag('Pitch circle','passes through every pin center')});
+  shape('rot5',circ(0,0,sd.Rp+17,0,128*DEG,52*DEG,40),{cls:'arw',a:win(t,C5T.run[0]-.4,C5T.uncut[1]),heads:1});
+  const teeth=st.u0;
+  if(t>=C5T.b3) infoReq={title:'Sprocket turning',rows:[['Teeth passed',teeth.toFixed(1)],['Chain moved',(teeth*P).toFixed(1)+' mm'],['Per tooth','12.7 mm']]};
+  stepReq=t<C5T.wrap0?'Lowering the chain':t<C5T.camClose[0]?'Wrapping':t<C5T.b3?'Cutaway: rollers in the tooth gaps':'Turning';
+  capReq=t<C5T.lab[0]?'The chain is lowered onto the sprocket. As it wraps around, each roller drops into a tooth gap.'
+        :t<C5T.b3?'With the front plates hidden, you can see each roller sitting in a tooth gap.'
+        :'Every tooth that passes moves the chain exactly one pitch, 12.7 mm.';
+}
+
+/* 6 — Two sprockets, one chain */
+const S6={M:58,v:36/(S6RUN-.5)};   // the driver makes exactly two turns
+(function(){
+  const RA=SD18.Rp, RB=SD36.Rp;
+  const tot=C=>{const b=Math.asin((RB-RA)/C); return 2*C*Math.cos(b)/P+(Math.PI-2*b)*18/TAU+(Math.PI+2*b)*36/TAU;};
+  let lo=RA+RB+20, hi=900; for(let i=0;i<70;i++){const m=(lo+hi)/2; if(tot(m)<S6.M)lo=m; else hi=m;}
+  const C=(lo+hi)/2, b=Math.asin((RB-RA)/C); S6.C=C;
+  S6.xa=-(C+RB-RA)/2; S6.xb=S6.xa+C;
+  const A=[S6.xa,0], B=[S6.xb,0], nT=[-Math.sin(b),Math.cos(b)], nB=[-Math.sin(b),-Math.cos(b)];
+  const TA=[A[0]+RA*nT[0],RA*nT[1]], TB=[B[0]+RB*nT[0],RB*nT[1]], BA=[A[0]+RA*nB[0],RA*nB[1]], BB=[B[0]+RB*nB[0],RB*nB[1]];
+  const span=C*Math.cos(b)/P;
+  const segs=[
+    {k:'l',a:TB,b:TA,u:span},
+    {k:'c',c:A,R:RA,a0:Math.PI/2+b,N:18,u:(Math.PI-2*b)*18/TAU},
+    {k:'l',a:BA,b:BB,u:span},
+    {k:'c',c:B,R:RB,a0:1.5*Math.PI-b,N:36,u:(Math.PI+2*b)*36/TAU},
+  ];
+  let acc=0; for(const s of segs){s.u0=acc; acc+=s.u;}
+  S6.segs=segs; S6.total=acc; S6.TA=TA; S6.TB=TB; S6.BA=BA; S6.BB=BB; S6.nT=nT;
+  S6.at=u=>{u=((u%acc)+acc)%acc; for(const s of segs){ if(u<=s.u0+s.u+1e-9){const f=u-s.u0;
+      if(s.k==='l'){const r=f/s.u; return [lerp(s.a[0],s.b[0],r),lerp(s.a[1],s.b[1],r)];}
+      const a=s.a0+f*TAU/s.N; return [s.c[0]+s.R*Math.cos(a),s.c[1]+s.R*Math.sin(a)];}}
+    return segs[0].a;};
+  S6.thA=u0=>segs[1].a0+(u0-segs[1].u0)*TAU/18;
+  S6.thB=u0=>segs[3].a0+(u0-segs[3].u0)*TAU/36;
+  // An open strand of 57 links (an inner link at each end) closes at the middle of the bottom run.
+  // Loop joint i sits at u0b+i; link 57, from joint 57 back to joint 0, is the connecting link.
+  S6.u0b=segs[2].u0+segs[2].u/2+.5;
+  const fin=[]; for(let i=0;i<S6.M;i++) fin.push(S6.at(S6.u0b+i));
+  const c=Math.round((((segs[0].u/2-S6.u0b)%S6.M)+S6.M)%S6.M);   // anchor: the joint nearest the middle of the top run
+  S6.D=makeDrape(fin,c);
+  S6.gap=S6.at(S6.u0b-.5);
+})();
+CAM.ds={tx:S6.gap[0]-2,ty:S6.gap[1]+2,tz:-6,az:-42,el:20,d:150};     // side view: pins in from behind, plate on from the front
+CAM.df={tx:S6.gap[0]+10,ty:S6.gap[1]+2,tz:2,az:-10,el:20,d:118};     // front view for the spring clip
+CAM.dm={tx:S6.xa-4,ty:16,tz:-48,az:-66,el:20,d:300};                    // motor going onto the driver shaft
+const nearestCong=(target,ref,step)=>target+Math.round((ref-target)/step)*step;
+function s6u0(t){
+  const r=t-S6T.run; if(r<=0)return S6.u0b;
+  return S6.u0b+(r<1?S6.v*r*r/2:S6.v*(r-.5));
+}
+const CLIP_Z=DIM.zOut+.83;
+function sDrive(t){
+  applyCam(camAt(t,[K(0,CAM.m3),K(2.6,CAM.d1),K(S6T.side[0],CAM.d1),K(S6T.side[1],CAM.ds),K(S6T.front[0],CAM.ds),K(S6T.front[1],CAM.df),
+    K(S6T.motorCam[0],CAM.df),K(S6T.motorCam[1],CAM.dm),K(S6T.wide[0],CAM.dm),K(S6T.wide[1],CAM.d2),K(S6T.run+S6RUN,CAM.d3)]));
+  const u0=s6u0(t), thA=S6.thA(u0), thB=S6.thB(u0), M=S6.M, D=S6.D;
+  // chapter 5's strand fades away where it lies
+  if(t<S6T.fade[1]){ const st=s5state(99); drawLinks(st.J,strandLinks(S5.M)); chainAlpha(1-seg(t,S6T.fade[0],S6T.fade[1])); }
+  // sprocket A slides to the driver position, turning as it goes
+  const th5=s5state(99).th, fA=io(seg(t,S6T.moveA[0],S6T.moveA[1]));
+  const thA0=nearestCong(S6.thA(S6.u0b),th5-S6.xa/SD18.Ro,TAU/18);
+  const rotA=t<S6T.run?lerp(th5,thA0,fA):thA0+(thA-S6.thA(S6.u0b));
+  sprA.visible=true; sprA.position.set(lerp(0,S6.xa,fA),0,0); sprA.rotation.set(0,0,rotA);
+  // sprocket B rolls in
+  const fB=io(seg(t,S6T.rollB[0],S6T.rollB[1])), xB=lerp(S6.xb+330,S6.xb,fB), thB0=S6.thB(S6.u0b);
+  sprB.visible=t>S6T.rollB[0]; sprB.position.set(xB,0,0);
+  sprB.rotation.set(0,0,t<S6T.run?thB0-(xB-S6.xb)/SD36.Ro:thB);
+  fadeMat(sprB.userData.mat,seg(t,S6T.rollB[0],S6T.rollB[0]+.5));
+  // the chain: laid over both sprockets, each end wrapped around its sprocket, ends joined underneath
+  let J=null;
+  if(t>=S6T.run){ J=[]; for(let i=0;i<M;i++) J.push(S6.at(u0+i)); }
+  else if(t>=S6T.drop[0]){
+    const h=175*(1-eo(seg(t,S6T.drop[0],S6T.drop[1])));
+    const an=[D.fin[D.c][0]+S6.nT[0]*h,D.fin[D.c][1]+S6.nT[1]*h];
+    const pmax=Math.max(D.c,M-1-D.c)+1, pf=t>=S6T.wrap[0]?lerp(6,pmax,sm(seg(t,S6T.wrap[0],S6T.wrap[1]))):0;
+    J=drape(D,an,i=>sm(clamp(pf-Math.abs(i-D.c))),D.dir[D.c]);
+  }
+  if(J){
+    drawLinks(J,strandLinks(M));
+    // connecting link (link 57): outer plate with two pins pushed in from behind along the pin axis,
+    // side plate pressed on from the front, then the spring clip slid on open end first
+    const a=J[M-1], b=J[0], ang=Math.atan2(b[1]-a[1],b[0]-a[0]), cx=(a[0]+b[0])/2, cy=(a[1]+b[1])/2;
+    const zb=-180*(1-io(seg(t,S6T.pinZ[0],S6T.pinZ[1])));
+    if(t>=S6T.pinZ[0]){ put('outer',cx,cy,-DIM.zOut+zb,ang); put('pin',a[0],a[1],zb); put('pin',b[0],b[1],zb); }
+    const zf=90*(1-io(seg(t,S6T.sideZ[0],S6T.sideZ[1])));
+    if(t>=S6T.sideZ[0]) put('outerF',cx,cy,DIM.zOut+zf,ang);
+    // clip: closed end on the leading pin (joint 0), so it faces the direction of travel;
+    // it slides on along the plate with its open end first, then snaps down into the pin grooves
+    const xs=72*(1-io(seg(t,S6T.clipX[0],S6T.clipX[1]))), hov=.6*(1-io(seg(t,S6T.snap[0],S6T.snap[1])));
+    if(t>=S6T.clipX[0]){
+      clip.visible=true; clip.position.set(cx+Math.cos(ang)*xs,cy+Math.sin(ang)*xs,CLIP_Z+hov); clip.rotation.set(0,0,ang+Math.PI);
+    }
+    const q=t-S6T.snap[0]; if(q>0&&q<1.1) MAT.clip.emissive.setRGB(.25,.32,.8).multiplyScalar(Math.sin(Math.PI*q/1.1)*.7);
+    label('cl',{at:[a[0],a[1]+2,DIM.zOut+.6],off:[-70,-66],a:win(t,S6T.lab4,S6T.b5-.1),cls:'key',c:tag('Connecting link','its pins go through both end bushings')});
+    label('sp',{at:[cx+3,cy+6.1,DIM.zOut+.75],off:[70,-62],a:win(t,S6T.lab5,S6T.front[0]-.1),c:tag('Side plate','pressed onto the pin ends from the front')});
+    label('clp',{at:[b[0]+Math.cos(ang)*3,b[1]+Math.sin(ang)*3+2.9,CLIP_Z+.5],off:[64,-60],a:win(t,S6T.lab6,S6T.motorCam[0]-.1),cls:'key',c:tag('Spring clip','closed end faces the direction of travel')});
+  }
+  // the motor slides onto the driver: its shaft goes through the bore, the key into the keyway
+  if(t>=S6T.motorZ[0]){
+    const mz=-260*(1-io(seg(t,S6T.motorZ[0],S6T.motorZ[1])));
+    motor.visible=true; motor.position.set(S6.xa,0,mz); motor.userData.shaft.rotation.z=rotA;
+    label('mot',{at:[S6.xa,46,-80+mz],off:[64,-64],a:win(t,S6T.lab7,S6T.wide[0]-.1),cls:'key',c:tag('Motor','its shaft and key fit the driver’s bore')});
+  }
+  const hfA=sprA.userData.hubFront, hfB=sprB.userData.hubFront;
+  const lab=Math.max(win(t,S6T.lab1,S6T.side[0]),seg(t,S6T.wide[1],S6T.wide[1]+.4));
+  label('drv',{at:[S6.xa-13,-13,hfA],off:[-74,104],a:lab,c:tag('Driver sprocket','18 teeth')});
+  label('dvn',{at:[S6.xb+23.5,-3,hfB],off:[150,64],a:Math.min(lab,seg(t,S6T.lab1+.3,S6T.lab1+.7)),c:tag('Driven sprocket','36 teeth')});
+  const ar=win(t,S6T.run+.3,1e9);
+  shape('rA',circ(S6.xa,0,SD18.Rp+19,0,150*DEG,212*DEG,30),{cls:'arw',a:ar,heads:1});
+  shape('rB',circ(S6.xb,0,SD36.Rp+19,0,-32*DEG,30*DEG,36),{cls:'arw',a:ar,heads:1});
+  const tm=[(S6.TA[0]+S6.TB[0])/2,(S6.TA[1]+S6.TB[1])/2], bm=[(S6.BA[0]+S6.BB[0])/2,(S6.BA[1]+S6.BB[1])/2];
+  label('tight',{at:[tm[0],tm[1]+6.5,DIM.zOut],off:[30,-58],a:win(t,S6T.run+1.4,1e9),c:tag('Tight side','pulled by the driver')});
+  label('slack',{at:[bm[0],bm[1]-6.5,DIM.zOut],off:[30,58],a:win(t,S6T.run+2.4,1e9),c:tag('Slack side','returns to the driver')});
+  const turnsA=(u0-S6.u0b)/18, turnsB=(u0-S6.u0b)/36;
+  if(t>=S6T.b8) infoReq={title:'Drive ratio 2 : 1',rows:[['Driver turns',turnsA.toFixed(2)],['Driven turns',turnsB.toFixed(2)],['Chain','58 links'],['Center distance',S6.C.toFixed(0)+' mm']]};
+  stepReq=t<S6T.b2?'Setting up the drive':t<S6T.b3?'Laying the chain on':t<S6T.b4?'Wrapping both sprockets'
+         :t<S6T.b5?'Connecting link · 1 of 3 · pins':t<S6T.b6?'Connecting link · 2 of 3 · side plate':t<S6T.b7?'Connecting link · 3 of 3 · spring clip'
+         :t<S6T.b8?'Adding the motor':'Running';
+  capReq=t<S6T.b2?'Now a second sprocket joins the first.'
+        :t<S6T.b3?'An open length of chain is laid over both sprockets.'
+        :t<S6T.b4?'Each end is wrapped around its sprocket, and the two ends meet underneath.'
+        :t<S6T.b5?'A connecting link closes the loop. Its pins go in from behind, through both end bushings.'
+        :t<S6T.b6?'A side plate is pressed onto the pin ends from the front.'
+        :t<S6T.b7?'A spring clip slides on, open end first, and snaps into grooves in the pins.'
+        :t<S6T.b8?'A motor goes on the driver. Its shaft fits the sprocket’s bore, and a key locks the two together.'
+        :t<S6T.b9?'Switch on. The motor turns the driver, and the chain carries that turning to the driven sprocket.'
+        :'The driven sprocket has twice the teeth, so it turns once for every two turns of the driver.';
+}
+
+const SCENE_FN=[sParts,sAssembly,sChain,sSprocket,sMesh,sDrive];
+
+/* ---------- frame ---------- */
+function sceneIndex(T){ for(let i=SCENES.length-1;i>=0;i--) if(T>=SCENES[i].start) return i; return 0; }
+// poses the 3D scene for time T and renders it; labels, lines and captions are left queued
+function sceneStep(T,tail){
+  for(const k in CNT){CNT[k]=0; IM[k].visible=true;}
+  chain.position.set(0,0,0); chain.visible=true; clip.visible=false;
+  sprA.visible=false; sprB.visible=false; motor.visible=false;
+  matReset();
+  const ci=Math.min(sceneIndex(T),SCENES.length-1), sc=SCENES[ci];
+  SCENE_FN[ci](T-sc.start+(ci===SCENES.length-1?tail:0),T);
+  for(const k in IM){IM[k].count=CNT[k]; IM[k].instanceMatrix.needsUpdate=true;}
+  renderer.render(scene,camera);
+  return ci;
+}
+function renderAt(T,tail){ const ci=sceneStep(T,tail); flushShapes(); flushLabels(); flushHUD(ci); return ci; }
+
+/* ---------- sizing ---------- */
+function resize(){
+  if(exporting) return;
+  const r=stage.getBoundingClientRect(); W=Math.max(1,Math.round(r.width)); H=Math.max(1,Math.round(r.height));
+  renderer.setSize(W,H,false); camera.aspect=W/H; camera.updateProjectionMatrix();
+  SC=clamp(W/1150,.78,1.12); stage.style.setProperty('--s',SC.toFixed(3));
+  stage.classList.toggle('narrow',W<560);
+  ov.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  for(const e of LBL.values()) e.s=0;
+  dirty=true;
+}
+
+/* ---------- transport ---------- */
+const playBtn=$('play'), scrub=$('scrub'), timeEl=$('time'), speedBtn=$('speed'), chapNav=$('chapters'), player=$('player'), fsBtn=$('fsBtn');
+const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+let T=0, tail=0, playing=!reduce, speed=1, last=performance.now(), dirty=true, dragging=false, resumeAfter=false, curChap=-1, exporting=false;
+let isFull=false, nativeFull=false, wake=null, hideTimer=0;
+scrub.max=TOTAL;
+const fmt=s=>{s=Math.max(0,Math.floor(s+1e-6)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+const fmt1=s=>{s=Math.max(0,Math.round(s*10)/10); const m=Math.floor(s/60), r=s-m*60; return m+':'+(r<10?'0':'')+r.toFixed(1);};
+SCENES.forEach((s,i)=>{
+  if(i>0){const tk=document.createElement('i'); tk.style.left=(s.start/TOTAL*100)+'%'; $('ticks').appendChild(tk);}
+  const b=document.createElement('button'); b.type='button'; b.className='chap';
+  b.innerHTML=`<span class="n">${String(i+1).padStart(2,'0')} &middot; ${fmt(s.start)}</span><span class="t">${s.title}</span><span class="bar"></span>`;
+  b.addEventListener('click',()=>{ if(exporting)return; if(clipS.on) setClip(s.start,s.start+s.dur,true); else seek(s.start,true); });
+  chapNav.appendChild(b); s.btn=b; s.bar=b.querySelector('.bar');
+});
+// the hidden property does not exist on SVG elements, so toggle the attribute itself
+function showPause(on){ $('icoPause').toggleAttribute('hidden',!on); $('icoPlay').toggleAttribute('hidden',on); }
+function setPlaying(p){
+  playing=p; showPause(p); if(isFull) pokeControls();
+  playBtn.setAttribute('aria-label',p?'Pause':'Play'); dirty=true;
+}
+function seek(t,play){ T=clamp(t,0,TOTAL); tail=0; dirty=true; if(play!==undefined)setPlaying(play); }
+playBtn.addEventListener('click',()=>{
+  if(exporting)return;
+  if(clipS.on){ setPreview(!clipS.preview); return; }
+  if(!playing&&T>=TOTAL){seek(0,true);return;} setPlaying(!playing);
+});
+$('restart').addEventListener('click',()=>{ if(exporting)return; if(clipS.on){ setPreview(true); return; } seek(0,true); });
+/* playback speed: a small menu from a quarter speed up to four and a half */
+const PLAY_SPEEDS=[.25,.5,.75,1,1.25,1.5,2,2.5,3,3.5,4,4.5];
+const speedMenu=$('speedMenu'), smGrid=$('smGrid'), fmtX=v=>String(v)+'×';
+PLAY_SPEEDS.forEach(v=>{ const b=document.createElement('button'); b.type='button'; b.tabIndex=-1; b.setAttribute('role','menuitemradio'); b.dataset.v=String(v); b.textContent=fmtX(v); smGrid.appendChild(b); });
+function setPlaySpeed(v,flash){
+  speed=v; speedBtn.textContent=fmtX(v); speedBtn.setAttribute('aria-label','Playback speed '+fmtX(v));
+  for(const b of smGrid.children) b.setAttribute('aria-checked',String(+b.dataset.v===v));
+  if(flash){ speedBtn.classList.remove('pulse'); void speedBtn.offsetWidth; speedBtn.classList.add('pulse'); }
+}
+function stepSpeed(dir){ let i=PLAY_SPEEDS.indexOf(speed); if(i<0)i=PLAY_SPEEDS.indexOf(1); setPlaySpeed(PLAY_SPEEDS[clamp(i+dir,0,PLAY_SPEEDS.length-1)],true); }
+function placeSpeedMenu(){
+  speedMenu.style.left='0px';
+  const br=speedBtn.getBoundingClientRect(), mw=speedMenu.offsetWidth;
+  const host=isFull?player.getBoundingClientRect():{left:0,right:document.documentElement.clientWidth};
+  const L=Math.max(host.left+8,Math.min(host.right-8-mw,br.left+br.width/2-mw/2));
+  speedMenu.style.left=Math.round(L-br.left)+'px';
+}
+function openSpeedMenu(){
+  if(exporting)return;
+  speedMenu.hidden=false; speedBtn.setAttribute('aria-expanded','true'); placeSpeedMenu();
+  const cur=[...smGrid.children].find(b=>+b.dataset.v===speed)||smGrid.children[3]; cur.focus({preventScroll:true});
+}
+function closeSpeedMenu(refocus){
+  if(speedMenu.hidden)return;
+  speedMenu.hidden=true; speedBtn.setAttribute('aria-expanded','false'); if(refocus) speedBtn.focus({preventScroll:true});
+}
+speedBtn.addEventListener('click',()=>{ speedMenu.hidden?openSpeedMenu():closeSpeedMenu(false); });
+smGrid.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; setPlaySpeed(+b.dataset.v); closeSpeedMenu(true); });
+speedMenu.addEventListener('keydown',e=>{
+  const items=[...smGrid.children], i=items.indexOf(document.activeElement), k=e.key; let j;
+  if(k==='ArrowRight')j=i+1; else if(k==='ArrowLeft')j=i-1; else if(k==='ArrowDown')j=i+3; else if(k==='ArrowUp')j=i-3;
+  else if(k==='Home')j=0; else if(k==='End')j=items.length-1;
+  else if(k==='Escape'){ e.preventDefault(); e.stopPropagation(); closeSpeedMenu(true); return; }
+  else if(k==='Tab'){ closeSpeedMenu(false); return; }
+  else return;
+  e.preventDefault(); e.stopPropagation(); items[clamp(i<0?0:j,0,items.length-1)].focus();
+});
+let swallowClick=false; // a click that only closes the menu should not also pause the picture
+document.addEventListener('pointerdown',e=>{ swallowClick=false; if(!speedMenu.hidden&&!e.target.closest('#spd')){ closeSpeedMenu(false); swallowClick=true; } },true);
+window.addEventListener('resize',()=>closeSpeedMenu(false));
+setPlaySpeed(1);
+scrub.addEventListener('pointerdown',()=>{ if(clipS.on&&clipS.preview) setPreview(false); if(!dragging){dragging=true; resumeAfter=playing;} });
+scrub.addEventListener('input',()=>{ if(clipS.on&&clipS.preview) setPreview(false); seek(parseFloat(scrub.value)); });
+const endDrag=()=>{ if(dragging){dragging=false; if(resumeAfter&&!clipS.on)setPlaying(true);} };
+scrub.addEventListener('pointerup',endDrag); scrub.addEventListener('change',endDrag);
+
+/* ---------- GIF clips: mark a stretch of the timeline, preview it, export it ---------- */
+const clipS={on:false,a:0,b:4,dir:'fwd',speed:1,preview:false,ph:0};
+const trim=$('trim'), hS=$('hS'), hE=$('hE'), tsel=$('tsel'), shL=$('shL'), shR=$('shR'), gifBtn=$('gifBtn'), gp=$('gifPanel');
+const gSpeed=$('gSpeed'), gSpeedV=$('gSpeedV'), gSize=$('gSize'), gFps=$('gFps'), gLabels=$('gLabels'), gCaps=$('gCaps'), gTitle=$('gTitle');
+const gMake=$('gMake'), gPrev=$('gPreview'), gSum=$('gSummary'), gTimes=$('gTimes'), busy=$('busy');
+const MAXF=600, MINLEN=.2, SIZES={s:[480,270],m:[640,360],l:[800,450],xl:[960,540]};
+[hS,hE].forEach(h=>h.setAttribute('aria-valuemax',TOTAL.toFixed(1)));
+
+function setClip(a,b,show){
+  a=clamp(a,0,TOTAL); b=clamp(b,0,TOTAL);
+  if(b-a<MINLEN){ if(a+MINLEN<=TOTAL) b=a+MINLEN; else a=b-MINLEN; }
+  clipS.a=a; clipS.b=b; layoutTrim(); updateSummary();
+  if(show){ setPreview(false); seek(clipS.dir==='rev'?b:a); }
+}
+function layoutTrim(){
+  const pa=clipS.a/TOTAL*100, pb=clipS.b/TOTAL*100;
+  hS.style.left=pa+'%'; hE.style.left=pb+'%';
+  tsel.style.left=pa+'%'; tsel.style.width=(pb-pa)+'%';
+  shL.style.left='0'; shL.style.width=pa+'%'; shR.style.left=pb+'%'; shR.style.width=(100-pb)+'%';
+  hS.setAttribute('aria-valuenow',clipS.a.toFixed(1)); hS.setAttribute('aria-valuetext',fmt1(clipS.a));
+  hE.setAttribute('aria-valuenow',clipS.b.toFixed(1)); hE.setAttribute('aria-valuetext',fmt1(clipS.b));
+}
+// the animation times of every GIF frame, in the order they will play
+function gifPlan(){
+  const [w,h]=SIZES[gSize.value], fps=+gFps.value, D=clipS.b-clipS.a, n=Math.max(2,Math.round(D/clipS.speed*fps)+1), times=[];
+  for(let k=0;k<n;k++){ const f=k/(n-1); times.push(clipS.dir==='rev'?clipS.b-D*f:clipS.a+D*f); }
+  if(clipS.dir==='pp') for(let k=n-2;k>=1;k--) times.push(clipS.a+D*k/(n-1));
+  return {w,h,fps,times,secs:times.length/fps};
+}
+// the slowest speed at which the clip fits in MAXF frames, rounded up to a tidy value
+function fitSpeed(){
+  const D=clipS.b-clipS.a, fps=+gFps.value, n=clipS.dir==='pp'?Math.floor((MAXF+2)/2):MAXF, need=D*fps/(n-1);
+  return NICE.find(x=>x>=need*1.001)||Math.ceil(need*10)/10;
+}
+function updateSummary(){
+  const p=gifPlan(), ok=p.times.length<=MAXF, fb=$('gFit');
+  gTimes.innerHTML=`${fmt1(clipS.a)} → ${fmt1(clipS.b)}<small>${(clipS.b-clipS.a).toFixed(1)} s of animation</small>`;
+  fb.hidden=true;
+  if(ok) gSum.textContent=`The GIF: ${p.secs.toFixed(1)} s, ${p.times.length} frames, ${p.w} × ${p.h}`;
+  else {
+    const f=fitSpeed();
+    if(f<=SMAX){ gSum.textContent=`That is ${p.times.length} frames, over the ${MAXF}-frame limit.`; fb.dataset.s=String(f); fb.textContent=`Speed up to ${fmtSpeed(f)}× to fit`; fb.hidden=false; }
+    else gSum.textContent=`That is ${p.times.length} frames, over the ${MAXF}-frame limit even at ${SMAX}×. Shorten the clip or lower the frame rate.`;
+  }
+  gSum.classList.toggle('warn',!ok); gMake.disabled=!ok||exporting;
+}
+function setPreview(on){
+  clipS.preview=on; clipS.ph=0;
+  gPrev.textContent=on?'Stop preview':'Preview loop'; gPrev.setAttribute('aria-pressed',String(on));
+  showPause(on); playBtn.setAttribute('aria-label',on?'Stop the preview':'Preview the clip');
+  dirty=true;
+}
+// where the preview is, given the animation seconds played since it started
+function clipTime(ph){
+  const D=clipS.b-clipS.a;
+  if(clipS.dir==='pp'){ const q=ph%(2*D); return q<D?clipS.a+q:clipS.b-(q-D); }
+  const q=ph%D; return clipS.dir==='rev'?clipS.b-q:clipS.a+q;
+}
+function applyIncludes(){ stage.classList.toggle('nolabels',!gLabels.checked); stage.classList.toggle('notitle',!gTitle.checked); stage.classList.toggle('nocaps',!gCaps.checked); }
+function setClipMode(on){
+  closeSpeedMenu(false);
+  if(on&&photoS.on) setPhotoMode(false);
+  clipS.on=on; gifBtn.setAttribute('aria-pressed',String(on)); trim.hidden=!on; gp.hidden=!on;
+  stage.classList.toggle('clipmode',on);
+  if(on){
+    setPlaying(false);
+    let a=T, b=Math.min(TOTAL,T+4); if(b-a<1){a=Math.max(0,TOTAL-4); b=TOTAL;}
+    setClip(a,b,false); applyIncludes(); setPreview(false); seek(a);
+  } else { stage.classList.remove('nolabels','notitle','nocaps'); clipS.preview=false; setPlaying(false); }
+  dirty=true;
+}
+gifBtn.addEventListener('click',()=>{ if(!exporting) setClipMode(!clipS.on); });
+$('gClose').addEventListener('click',()=>{ if(!exporting) setClipMode(false); });
+[gLabels,gTitle,gCaps].forEach(el=>el.addEventListener('change',applyIncludes));
+const NICE=[.25,.33,.5,.67,.75,1,1.25,1.5,2,2.5,3,4,5,6,8,10,12,16,20,24,32], SMAX=32;
+const fmtSpeed=s=>s>=10?String(Math.round(s)):String(s);
+const speedOf=v=>{ const s=Math.pow(2,v), n=NICE.find(x=>Math.abs(x-s)/x<.03); return n||Math.round(s*100)/100; };
+gSpeed.addEventListener('input',()=>{ clipS.speed=speedOf(+gSpeed.value); gSpeedV.textContent=fmtSpeed(clipS.speed)+'×'; updateSummary(); });
+function setSpeed(v){ clipS.speed=v; gSpeed.value=String(Math.log2(v)); gSpeedV.textContent=fmtSpeed(v)+'×'; updateSummary(); }
+$('gFit').addEventListener('click',()=>{ if(!exporting) setSpeed(+$('gFit').dataset.s); });
+$('gDir').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||exporting)return;
+  clipS.dir=b.dataset.v; [...$('gDir').children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  updateSummary(); if(clipS.preview) clipS.ph=0; else seek(clipS.dir==='rev'?clipS.b:clipS.a);
+});
+gSize.addEventListener('change',updateSummary); gFps.addEventListener('change',updateSummary);
+gPrev.addEventListener('click',()=>{ if(!exporting) setPreview(!clipS.preview); });
+
+// trim handles: drag with a pointer, or focus and use the arrow keys (Shift = 1 s steps)
+const trackX=t=>{ const r=scrub.getBoundingClientRect(); return r.left+8+(r.width-16)*t/TOTAL; };
+const trackT=x=>{ const r=scrub.getBoundingClientRect(); return clamp((x-r.left-8)/Math.max(1,r.width-16))*TOTAL; };
+function setEnd(which,t){
+  if(which==='a') setClip(clamp(t,0,clipS.b-MINLEN),clipS.b); else setClip(clipS.a,clamp(t,clipS.a+MINLEN,TOTAL));
+  seek(which==='a'?clipS.a:clipS.b);
+}
+function handle(el,which){
+  el.addEventListener('pointerdown',e=>{
+    if(exporting)return; e.preventDefault(); el.focus(); el.setPointerCapture(e.pointerId); setPreview(false);
+    const grab=e.clientX-trackX(which==='a'?clipS.a:clipS.b);
+    el.classList.add('drag');
+    const move=ev=>setEnd(which,trackT(ev.clientX-grab));
+    const up=()=>{ el.classList.remove('drag'); el.removeEventListener('pointermove',move); el.removeEventListener('pointerup',up); el.removeEventListener('pointercancel',up); };
+    el.addEventListener('pointermove',move); el.addEventListener('pointerup',up); el.addEventListener('pointercancel',up);
+  });
+  el.addEventListener('keydown',e=>{
+    const st=e.shiftKey?1:.1, cur=which==='a'?clipS.a:clipS.b; let t;
+    if(e.key==='ArrowLeft'||e.key==='ArrowDown') t=cur-st; else if(e.key==='ArrowRight'||e.key==='ArrowUp') t=cur+st;
+    else if(e.key==='Home') t=0; else if(e.key==='End') t=TOTAL; else return;
+    e.preventDefault(); e.stopPropagation(); if(exporting)return; setPreview(false); setEnd(which,t);
+  });
+}
+handle(hS,'a'); handle(hE,'b');
+
+document.addEventListener('keydown',e=>{
+  const tg=e.target&&e.target.tagName;
+  if(tg==='INPUT'||tg==='SELECT'||e.metaKey||e.ctrlKey||e.altKey||exporting)return;
+  const k=e.key;
+  if(k===' '||k==='k'){ if(tg==='BUTTON'&&k===' ')return; e.preventDefault(); playBtn.click(); }
+  else if(k==='ArrowRight'){ if(clipS.preview)setPreview(false); seek(T+5); } else if(k==='ArrowLeft'){ if(clipS.preview)setPreview(false); seek(T-5); }
+  else if(/^[1-6]$/.test(k)){ const s=SCENES[+k-1]; if(clipS.on) setClip(s.start,s.start+s.dur,true); else seek(s.start,true); }
+  else if(clipS.on&&(k==='i'||k==='I')){ setPreview(false); setClip(Math.min(T,clipS.b-MINLEN),clipS.b); }
+  else if(clipS.on&&(k==='o'||k==='O')){ setPreview(false); setClip(clipS.a,Math.max(T,clipS.a+MINLEN)); }
+  else if(k==='f'||k==='F'){ isFull?exitFull():enterFull(); }
+  else if(k==='>'||k==='<'){ stepSpeed(k==='>'?1:-1); }
+  else if(k==='Escape'&&!speedMenu.hidden){ closeSpeedMenu(true); }
+  else if(k==='g'||k==='G'){ if(isFull)exitFull(); setClipMode(!clipS.on); }
+  else if(k==='p'||k==='P'){ if(isFull)exitFull(); setPhotoMode(!photoS.on); }
+  else if(k==='Escape'&&isFull){ exitFull(); }
+  else if(k==='Escape'&&clipS.on){ setClipMode(false); }
+  else if(k==='Escape'&&photoS.on){ setPhotoMode(false); }
+});
+
+
+/* ---------- full screen ---------- */
+// The player (stage + controls) goes full screen. Where the browser or app refuses, it fills the window instead.
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement||null;
+async function wakeOn(){ try{ if(wake&&wake.released) wake=null; if(navigator.wakeLock&&!wake){ const w=await navigator.wakeLock.request('screen'); if(isFull) wake=w; else w.release(); } }catch(err){} }
+function wakeOff(){ try{ if(wake) wake.release(); }catch(err){} wake=null; }
+function setFullUI(on,native){
+  const was=isFull; isFull=on; nativeFull=!!(on&&native);
+  player.classList.toggle('is-full',on); player.classList.toggle('pseudo',on&&!native);
+  document.documentElement.classList.toggle('fs-lock',on&&!native);
+  $('icoFs').toggleAttribute('hidden',on); $('icoFsX').toggleAttribute('hidden',!on);
+  fsBtn.setAttribute('aria-label',on?'Exit full screen':'Full screen'); fsBtn.title=on?'Exit full screen (F or Esc)':'Full screen (F)';
+  if(on&&!was){ closeSpeedMenu(false); wakeOn(); pokeControls(); }
+  if(!on&&was){ closeSpeedMenu(false); wakeOff(); clearTimeout(hideTimer); player.classList.remove('show-ctl');
+    try{ if(screen.orientation&&screen.orientation.unlock) screen.orientation.unlock(); }catch(err){} }
+  dirty=true;
+}
+async function enterFull(){
+  if(isFull||exporting)return;
+  if(clipS.on) setClipMode(false); if(photoS.on) setPhotoMode(false);
+  const req=player.requestFullscreen||player.webkitRequestFullscreen;
+  // never hang on a request the browser leaves pending: after a moment, fill the window and upgrade if it arrives
+  if(req){ try{ const r=req.call(player); if(r&&r.then) await Promise.race([r,new Promise(res=>setTimeout(res,450))]); }catch(err){} }
+  if(!fsEl()) await new Promise(r=>setTimeout(r,120));
+  const native=fsEl()===player;
+  setFullUI(true,native);
+  // on a phone a wide picture reads best sideways, the way video players do it
+  if(native&&matchMedia('(pointer:coarse)').matches&&screen.orientation&&screen.orientation.lock){ screen.orientation.lock('landscape').catch(()=>{}); }
+}
+function exitFull(){
+  if(!isFull)return;
+  const ex=document.exitFullscreen||document.webkitExitFullscreen;
+  if(fsEl()&&ex){ try{ const r=ex.call(document); if(r&&r.catch) r.catch(()=>{}); }catch(err){} }
+  setFullUI(false);
+}
+const onFsChange=()=>{ const el=fsEl(); if(el===player){ if(!isFull||!nativeFull) setFullUI(true,true); } else if(isFull&&nativeFull) setFullUI(false); };
+document.addEventListener('fullscreenchange',onFsChange); document.addEventListener('webkitfullscreenchange',onFsChange);
+document.addEventListener('visibilitychange',()=>{ if(isFull&&document.visibilityState==='visible') wakeOn(); });
+fsBtn.addEventListener('click',()=>{ isFull?exitFull():enterFull(); });
+// controls fade away while it plays and come back on any movement, tap or key
+const bar=player.querySelector('.transport');
+let lastPtr='mouse', px=-1, py=-1;
+const kbFocusIn=el=>{ try{ return !!el.querySelector(':focus-visible'); }catch(err){ return el.contains(document.activeElement); } };
+function pokeControls(){
+  if(!isFull)return;
+  player.classList.add('show-ctl'); clearTimeout(hideTimer);
+  hideTimer=setTimeout(()=>{
+    const keep=!speedMenu.hidden||(lastPtr==='mouse'&&bar.matches(':hover'))||kbFocusIn(bar);
+    if(isFull&&playing&&!keep) player.classList.remove('show-ctl'); else pokeControls();
+  },2600);
+}
+document.addEventListener('pointerdown',e=>{ lastPtr=e.pointerType||'mouse'; },true);
+player.addEventListener('pointermove',e=>{ if(Math.abs(e.clientX-px)+Math.abs(e.clientY-py)<3)return; px=e.clientX; py=e.clientY; lastPtr=e.pointerType||'mouse'; pokeControls(); });
+player.addEventListener('pointerdown',pokeControls);
+document.addEventListener('keydown',pokeControls,true);
+// on the picture: a click plays or pauses (a tap first brings the controls back); a double-click toggles full screen
+let tapType='mouse', tapShown=true;
+stage.addEventListener('pointerdown',e=>{ tapType=e.pointerType||'mouse'; tapShown=player.classList.contains('show-ctl'); });
+stage.addEventListener('click',()=>{ if(swallowClick){ swallowClick=false; return; } if(!isFull||exporting)return; if(tapType!=='mouse'&&!tapShown)return; playBtn.click(); });
+stage.addEventListener('dblclick',()=>{ if(exporting||clipS.on||photoS.on||tapType!=='mouse')return; isFull?exitFull():enterFull(); });
+stage.addEventListener('mousedown',e=>{ if(e.detail>1) e.preventDefault(); });
+
+// Saving: inside the Claude viewer, files go through its save prompt. Anywhere else (the link opened in its own tab,
+// GitHub Pages, a copy on disk) the browser downloads the file directly.
+let dl=null, dlAsk=null;
+try{ if(window.claude&&typeof window.claude.use==='function') dlAsk=window.claude.use('downloads').then(d=>{dl=d||null; return dl;},()=>null); }catch(err){ dlAsk=null; }
+let abortGif=false, lastGif=null, lastUrl=null, lastName='Roller chain.gif';
+const stamp=s=>{s=Math.round(s); return Math.floor(s/60)+'m'+String(s%60).padStart(2,'0')+'s';};
+// "Connecting link · 3 of 3 · spring clip" -> "Connecting link, spring clip"; "Step 4 of 6 · Inner plate" -> "Inner plate"
+const cleanStep=t=>String(t||'').split(' · ').filter(x=>!/^(Step )?\d+ of \d+$/.test(x.trim())).join(', ').trim();
+const safeName=t=>t.replace(/[\/\\:*?"<>|\u0000-\u001f]+/g,' - ').replace(/\s+/g,' ').trim();
+const cap1=t=>t?t[0].toUpperCase()+t.slice(1):t;
+const chapLabel=ci=>String(ci+1).padStart(2,'0')+' '+SCENES[ci].title;
+// seen: [{t, ci, step}] for the frames in the file
+function describe(seen){
+  const fr=seen.slice().sort((x,y)=>x.t-y.t), c0=fr[0].ci, c1=fr[fr.length-1].ci;
+  if(c0!==c1) return `${String(c0+1).padStart(2,'0')}-${String(c1+1).padStart(2,'0')} ${SCENES[c0].title} to ${SCENES[c1].title}`;
+  const steps=[]; for(const f of fr){ const s=cap1(cleanStep(f.step)); if(s&&steps[steps.length-1]!==s) steps.push(s); }
+  let st=steps.length===0?'':steps[0];
+  if(steps.length>1){ // "Connecting link, side plate" .. "Connecting link, spring clip" -> "Connecting link, side plate to spring clip"
+    const a=steps[0], z=steps[steps.length-1], pa=a.split(', '), pz=z.split(', ');
+    st=pa.length>1&&pz.length>1&&pa[0]===pz[0]?`${a} to ${pz.slice(1).join(', ')}`:`${a} to ${z}`;
+  }
+  return chapLabel(c0)+(st&&st.toLowerCase()!==SCENES[c0].title.toLowerCase()?' - '+st:'');
+}
+function fileName(desc,details,ext){
+  let base=safeName(`Roller chain - ${desc}`); if(base.length>150) base=base.slice(0,150).trim();
+  return `${base} (${details.join(', ')}).${ext}`;
+}
+let gifSeen=[];
+function gifName(){
+  const det=[`${stamp(clipS.a)}-${stamp(clipS.b)}`];
+  if(clipS.dir==='rev') det.push('reverse'); else if(clipS.dir==='pp') det.push('back and forth');
+  if(clipS.speed!==1) det.push(fmtSpeed(clipS.speed)+'x');
+  return fileName(gifSeen.length?describe(gifSeen):'clip',det,'gif');
+}
+function refreshSave(){
+  for(const [blob,sv,nt] of [[lastGif,'gSave','gSaveNote'],[lastPhoto,'pSave','pSaveNote']]){
+    if(!blob)continue; $(sv).hidden=false; $(sv).disabled=false; $(nt).hidden=true;
+  }
+}
+function browserDownload(blob,name){
+  const u=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=u; a.download=name; a.rel='noopener'; a.style.display='none';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),60000);
+}
+async function saveFile(blob,name,note,btn){
+  if(!blob)return;
+  btn.disabled=true;
+  try{
+    let d=dl;
+    if(!d&&dlAsk) d=await Promise.race([dlAsk,new Promise(r=>setTimeout(()=>r(null),1500))]);
+    if(d){
+      try{ const r=await d.save({filename:name,data:blob}); note.hidden=false; note.textContent=r&&r.status==='delivered'?'Sent.':'Saved as “'+name+'”.'; return; }
+      catch(err){
+        const c=err&&err.code;
+        if(c==='declined'){ note.hidden=false; note.textContent='Not saved.'; return; }
+        if(c==='rate_limited'){ note.hidden=false; note.textContent='A save prompt is already open.'; return; }
+        if(c==='too_large'){ note.hidden=false; note.textContent='This file is too large to save here. Try a smaller size.'; return; }
+        // anything else means this view cannot save through the prompt: fall back to the browser
+      }
+    }
+    try{ browserDownload(blob,name); note.hidden=false; note.textContent='Downloading “'+name+'”. If nothing appears, right-click (or press and hold) the image and choose Save Image.'; }
+    catch(err){ note.hidden=false; note.textContent='Right-click (or press and hold) the image and choose Save Image to keep it.'; }
+  } finally { btn.disabled=false; }
+}
+$('gSave').addEventListener('click',()=>saveFile(lastGif,lastName,$('gSaveNote'),$('gSave')));
+$('pSave').addEventListener('click',()=>saveFile(lastPhoto,lastPhotoName,$('pSaveNote'),$('pSave')));
+$('gCancel').addEventListener('click',()=>{abortGif=true;});
+gMake.addEventListener('click',()=>{ makeGif(); });
+
+async function makeGif(){
+  if(exporting)return;
+  const p=gifPlan(); if(p.times.length>MAXF)return;
+  exporting=true; abortGif=false; clipS.preview=false; gPrev.textContent='Preview loop'; updateSummary();
+  gp.classList.add('working'); $('gResult').hidden=true; $('gProg').hidden=false; $('gBar').style.width='0%';
+  const cv=document.createElement('canvas'); cv.width=p.w; cv.height=p.h;
+  const ctx=cv.getContext('2d',{willReadFrequently:true});
+  $('busyCv').replaceChildren(cv); $('busyH').textContent='Making GIF'; busy.hidden=false;
+  const V=themeVars(), notes=p.w>=560, withLabels=gLabels.checked, withCaps=gCaps.checked, withTitle=gTitle.checked;
+  const grid=Math.max(10,24*p.w/Math.max(1,W));
+  const keep={W,H,SC,pr:renderer.getPixelRatio()};
+  renderer.setPixelRatio(1); renderer.setSize(p.w,p.h,false); camera.aspect=p.w/p.h; camera.updateProjectionMatrix();
+  W=p.w; H=p.h; SC=Math.max(.78,p.w/1000);
+  const gif=GIFENC.GIFEncoder(), step=1000/p.fps; let ok=false; gifSeen=[];
+  try{
+    for(let k=0;k<p.times.length&&!abortGif;k++){
+      const ci=sceneStep(p.times[k],0); gifSeen.push({t:p.times[k],ci,step:stepReq});
+      drawBg(ctx,V,p.w,p.h,grid); ctx.drawImage(renderer.domElement,0,0,p.w,p.h);
+      const hb=withTitle?hudBox(ctx,p.w,ci,stepReq):null, cb=withCaps?captionBox(ctx,p.w,p.h,capReq):null;
+      if(withLabels){ drawShapes2D(ctx,V); drawLabels2D(ctx,V,notes,{hud:hb,cap:cb}); }
+      if(hb||cb) drawText2D(ctx,V,hb,cb);
+      lreq=[]; sreq=[]; capReq=''; stepReq=''; infoReq=null; bomReq=null;
+      const px=ctx.getImageData(0,0,p.w,p.h).data, pal=GIFENC.quantize(px,256), idx=GIFENC.applyPalette(px,pal);
+      gif.writeFrame(idx,p.w,p.h,{palette:pal,delay:Math.round((k+1)*step/10)*10-Math.round(k*step/10)*10});
+      const pct=(k+1)/p.times.length*100;
+      $('gBar').style.width=pct.toFixed(1)+'%'; $('gProgT').textContent=`Frame ${k+1} of ${p.times.length}`; $('busyT').textContent=`Frame ${k+1} of ${p.times.length}`;
+      await new Promise(r=>setTimeout(r,0));
+    }
+    if(!abortGif){ gif.finish(); ok=true; }
+  } catch(err){ console.error(err); }
+  W=keep.W; H=keep.H; SC=keep.SC; renderer.setPixelRatio(keep.pr); exporting=false; resize();
+  busy.hidden=true; $('busyCv').replaceChildren(); $('gProg').hidden=true; gp.classList.remove('working'); updateSummary(); dirty=true;
+  if(ok){
+    lastGif=new Blob([gif.bytes()],{type:'image/gif'}); lastName=gifName();
+    if(lastUrl) URL.revokeObjectURL(lastUrl); lastUrl=URL.createObjectURL(lastGif);
+    $('gImg').src=lastUrl; $('gResult').hidden=false; $('gSaveNote').hidden=true;
+    $('gInfo').textContent=`${p.w} × ${p.h} · ${p.times.length} frames · ${p.secs.toFixed(1)} s · ${(lastGif.size/1048576).toFixed(1)} MB`;
+    refreshSave();
+  } else if(!abortGif){ $('gResult').hidden=true; gSum.textContent='The GIF could not be made. Try a smaller size or a shorter clip.'; gSum.classList.add('warn'); }
+  return ok;
+}
+
+
+/* ---------- photos: a still of the frame at the playhead, at a chosen size and quality ---------- */
+const photoS={on:false,fmt:'png'};
+const pp=$('photoPanel'), photoBtn=$('photoBtn'), pSize=$('pSize'), pQual=$('pQual'), pQualV=$('pQualV');
+const pLabels=$('pLabels'), pCaps=$('pCaps'), pTitle=$('pTitle'), pTrans=$('pTrans'), pTake=$('pTake');
+const PSIZES={hd:[1280,720],fhd:[1920,1080],qhd:[2560,1440],uhd:[3840,2160]};
+let lastPhoto=null, lastPhotoUrl=null, lastPhotoName='Roller chain.png', photoSeen=[];
+const screenPx=()=>{ const pr=Math.min(3,window.devicePixelRatio||1); return [Math.round(W*pr),Math.round(H*pr)]; };
+const photoDims=()=>pSize.value==='screen'?screenPx():PSIZES[pSize.value];
+// sizes this device's GPU cannot draw are switched off
+(function(){
+  const gl=renderer.getContext(), max=Math.min(gl.getParameter(gl.MAX_RENDERBUFFER_SIZE),gl.getParameter(gl.MAX_VIEWPORT_DIMS)[0]);
+  [...pSize.options].forEach(o=>{ const d=PSIZES[o.value]; if(d&&d[0]>max){ o.disabled=true; o.textContent+=' (too large for this device)'; } });
+})();
+function photoTime(){ $('pTime').innerHTML=`${fmt1(T)}<small>${SCENES[sceneIndex(T)].title}</small>`; }
+function updatePhoto(){
+  const jpg=photoS.fmt==='jpg';
+  pQual.disabled=!jpg; pTrans.disabled=jpg; if(jpg) pTrans.checked=false;
+  pQualV.textContent=jpg?pQual.value+'%':'—';
+  $('pQualNote').textContent=jpg?'Lower quality gives a smaller file.':'PNG keeps every pixel, so it has no quality setting.';
+  const o=pSize.querySelector('option[value="screen"]'), sp=screenPx(); o.textContent=`As on screen (${sp[0]} × ${sp[1]})`;
+  const [w,h]=photoDims();
+  $('pSummary').classList.remove('warn');
+  $('pSummary').textContent=`${w} × ${h} ${jpg?'JPG at '+pQual.value+'% quality':'PNG'}${pTrans.checked?', transparent background':''}`;
+  stage.classList.toggle('nolabels',!pLabels.checked); stage.classList.toggle('notitle',!pTitle.checked); stage.classList.toggle('nocaps',!pCaps.checked);
+  photoTime();
+}
+function setPhotoMode(on){
+  closeSpeedMenu(false);
+  if(on&&clipS.on) setClipMode(false);
+  photoS.on=on; photoBtn.setAttribute('aria-pressed',String(on)); pp.hidden=!on;
+  if(on){ setPlaying(false); updatePhoto(); } else stage.classList.remove('nolabels','notitle','nocaps');
+  dirty=true;
+}
+photoBtn.addEventListener('click',()=>{ if(!exporting) setPhotoMode(!photoS.on); });
+$('pClose').addEventListener('click',()=>{ if(!exporting) setPhotoMode(false); });
+$('pFmt').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||exporting)return;
+  photoS.fmt=b.dataset.v; [...$('pFmt').children].forEach(x=>x.setAttribute('aria-pressed',String(x===b))); updatePhoto();
+});
+pQual.addEventListener('input',updatePhoto); [pSize,pLabels,pTitle,pCaps,pTrans].forEach(el=>el.addEventListener('change',updatePhoto));
+pTake.addEventListener('click',()=>{ takePhoto(); });
+
+async function takePhoto(){
+  if(exporting)return false;
+  const [w,h]=photoDims(), jpg=photoS.fmt==='jpg', transparent=!jpg&&pTrans.checked, q=+pQual.value/100;
+  exporting=true; pTake.disabled=true; $('busyCv').replaceChildren(); $('busyH').textContent='Taking photo'; $('busyT').textContent=`${w} × ${h}`; busy.hidden=false;
+  await new Promise(r=>setTimeout(r,30));
+  const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+  const ctx=cv.getContext('2d'), V=themeVars(), keep={W,H,SC,pr:renderer.getPixelRatio()};
+  let blob=null;
+  try{
+    renderer.setPixelRatio(1); renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
+    W=w; H=h; SC=Math.max(.78,w/1150);
+    const ci=sceneStep(T,tail); photoSeen=[{t:T,ci,step:stepReq}];
+    if(!transparent) drawBg(ctx,V,w,h,Math.max(10,24*w/keep.W));
+    ctx.drawImage(renderer.domElement,0,0,w,h);
+    const hb=pTitle.checked?hudBox(ctx,w,ci,stepReq):null, cb=pCaps.checked?captionBox(ctx,w,h,capReq):null;
+    if(pLabels.checked){ drawShapes2D(ctx,V); drawLabels2D(ctx,V,w>=560,{hud:hb,cap:cb}); }
+    if(hb||cb) drawText2D(ctx,V,hb,cb);
+    lreq=[]; sreq=[]; capReq=''; stepReq=''; infoReq=null; bomReq=null;
+    blob=await new Promise(r=>cv.toBlob(r,jpg?'image/jpeg':'image/png',jpg?q:undefined));
+  } catch(err){ console.error(err); blob=null; }
+  W=keep.W; H=keep.H; SC=keep.SC; renderer.setPixelRatio(keep.pr); exporting=false; resize();
+  busy.hidden=true; pTake.disabled=false; dirty=true;
+  if(!blob){ $('pSummary').textContent='That size didn’t work on this device. Try a smaller one.'; $('pSummary').classList.add('warn'); return false; }
+  lastPhoto=blob; lastPhotoName=fileName(describe(photoSeen),[stamp(T),`${w}x${h}`].concat(transparent?['transparent']:[]),jpg?'jpg':'png');
+  if(lastPhotoUrl) URL.revokeObjectURL(lastPhotoUrl); lastPhotoUrl=URL.createObjectURL(blob);
+  const img=$('pImg'); img.src=lastPhotoUrl; img.classList.toggle('tp',transparent);
+  $('pResult').hidden=false; $('pSaveNote').hidden=true;
+  $('pInfo').textContent=`${w} × ${h} · ${jpg?'JPG '+pQual.value+'%':'PNG'} · ${blob.size>=1048576?(blob.size/1048576).toFixed(1)+' MB':Math.round(blob.size/1024)+' KB'}`;
+  refreshSave();
+  return true;
+}
+
+const hm=/^#ch([1-6])$/.exec(location.hash||''); if(hm) T=SCENES[+hm[1]-1].start;
+if(window.ResizeObserver) new ResizeObserver(resize).observe(stage); else window.addEventListener('resize',resize);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ for(const e of LBL.values()) e.s=0; dirty=true; });
+resize(); setPlaying(playing);
+if(/[?&]debug/.test(location.search)){
+  window.__seek=(t)=>{ setPlaying(false); seek(t); renderAt(T,0); };
+  window.__clip=(o)=>{ setClipMode(true); setClip(o.a,o.b,true); if(o.dir){clipS.dir=o.dir;} if(o.speed){clipS.speed=o.speed;} if(o.size)gSize.value=o.size; if(o.fps)gFps.value=String(o.fps); if('title' in o)gTitle.checked=!!o.title; if('caps' in o)gCaps.checked=!!o.caps; applyIncludes(); updateSummary(); };
+  window.__photo=async(o)=>{ setPhotoMode(true); if(o.size)pSize.value=o.size; if(o.fmt){photoS.fmt=o.fmt;} if(o.q)pQual.value=String(o.q); pTrans.checked=!!o.transparent; if('title' in o)pTitle.checked=!!o.title; if('caps' in o)pCaps.checked=!!o.caps; updatePhoto(); const ok=await takePhoto(); if(!ok)return null; const b=new Uint8Array(await lastPhoto.arrayBuffer()); let s=''; for(let i=0;i<b.length;i+=32768) s+=String.fromCharCode.apply(null,b.subarray(i,i+32768)); return btoa(s); };
+  window.__names=()=>({gif:lastName,photo:lastPhotoName});
+  window.__gif=async()=>{ const ok=await makeGif(); if(!ok)return null; const b=new Uint8Array(await lastGif.arrayBuffer()); let s=''; for(let i=0;i<b.length;i+=32768) s+=String.fromCharCode.apply(null,b.subarray(i,i+32768)); return btoa(s); };
+}
+
+function loop(now){
+  const dt=Math.min(.25,(now-last)/1000); last=now;
+  if(!exporting){
+    if(clipS.on){ if(clipS.preview){ clipS.ph+=dt*clipS.speed; T=clipTime(clipS.ph); tail=0; dirty=true; } }
+    else if(playing&&!dragging){ T+=dt*speed; if(T>=TOTAL){T=TOTAL; tail+=dt*speed;} dirty=true; }
+    if(dirty){
+      const ci=renderAt(T,tail); dirty=false; if(photoS.on) photoTime();
+      scrub.value=T; scrub.style.setProperty('--p',(T/TOTAL*100).toFixed(2)+'%');
+      timeEl.textContent=fmt(T)+' / '+fmt(TOTAL);
+      if(ci!==curChap){ SCENES.forEach((s,i)=>{s.btn.classList.toggle('cur',i===ci); if(i===ci)s.btn.setAttribute('aria-current','step'); else s.btn.removeAttribute('aria-current');}); curChap=ci; }
+      SCENES.forEach((s,i)=>{ s.bar.style.width=(i<ci?100:i>ci?0:clamp((T-s.start)/s.dur)*100)+'%'; });
+    }
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
